@@ -1,0 +1,890 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+
+\geometry{margin=1in}
+
+% SQL code styling
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{keywordcolor}{rgb}{0,0,0.8}
+
+\lstdefinestyle{sqlstyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{keywordcolor}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=SQL,
+    morekeywords={DELIMITER, SIGNAL, SQLSTATE, MESSAGE_TEXT, DETERMINISTIC, READS, RETURNS, IFNULL, TIMESTAMPDIFF, CURDATE, CONCAT, AUTO_INCREMENT, AFTER, BEFORE, DECLARE, HANDLER, CURSOR, LOOP, LEAVE, FETCH, OPEN, CLOSE}
+}
+
+\lstset{style=sqlstyle}
+
+% Header and footer
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Lab 5 - Database Systems}
+\lhead{View, Trigger, Store Procedure, Function, Cursor}
+\rfoot{Page \thepage}
+
+\title{\textbf{Database Systems\\Lab 5: View, Trigger, Store Procedure, Function, Cursor}}
+\author{Student Name}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+% ==========================================
+\section{Introduction}
+% ==========================================
+
+This lab report covers the implementation of Views, Triggers, Stored Procedures, Functions, and Cursors in MySQL. The exercises are based on the COMPANY database schema and a Hotel reservation system.
+
+\subsection{Database Schema: COMPANY}
+
+The COMPANY database consists of the following tables:
+\begin{itemize}
+    \item \texttt{EMPLOYEE} - Employee information
+    \item \texttt{DEPARTMENT} - Department information
+    \item \texttt{DEPT\_LOCATIONS} - Department locations
+    \item \texttt{PROJECT} - Project information
+    \item \texttt{WORKS\_ON} - Employee-Project assignments
+    \item \texttt{DEPENDENT} - Employee dependents
+\end{itemize}
+
+% ==========================================
+\section{Part 1: Views}
+% ==========================================
+
+\subsection{View (a): Department Manager Information}
+
+\textbf{Requirement:} A view that has the department name, manager name, and manager salary for every department.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS DepartmentManagerInfo;
+CREATE VIEW DepartmentManagerInfo AS
+SELECT 
+    d.Dname AS Department_Name,
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Manager_Name,
+    e.Salary AS Manager_Salary
+FROM DEPARTMENT d
+JOIN EMPLOYEE e ON d.Mgr_ssn = e.Ssn;
+\end{lstlisting}
+
+\textbf{Explanation:} This view joins the DEPARTMENT and EMPLOYEE tables using the manager's SSN to retrieve the department name, manager's full name (concatenated), and the manager's salary.
+
+\subsection{View (b): Research Department Employees and Supervisors}
+
+\textbf{Requirement:} A view that has the employee name, supervisor name, and employee salary for each employee who works in the 'Research' department.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS ResearchEmployeeSupervisor;
+CREATE VIEW ResearchEmployeeSupervisor AS
+SELECT 
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Employee_Name,
+    CONCAT(s.Fname, ' ', s.Minit, ' ', s.Lname) AS Supervisor_Name,
+    e.Salary AS Employee_Salary
+FROM EMPLOYEE e
+LEFT JOIN EMPLOYEE s ON e.Super_ssn = s.Ssn
+JOIN DEPARTMENT d ON e.Dno = d.Dnumber
+WHERE d.Dname = 'Research';
+\end{lstlisting}
+
+\textbf{Explanation:} This view uses a self-join on the EMPLOYEE table to get supervisor information, with a LEFT JOIN to handle employees without supervisors. The WHERE clause filters for the Research department.
+
+\subsection{View (c): Project Information}
+
+\textbf{Requirement:} A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS ProjectInfo;
+CREATE VIEW ProjectInfo AS
+SELECT 
+    p.Pname AS Project_Name,
+    d.Dname AS Controlling_Department,
+    COUNT(w.Essn) AS Number_of_Employees,
+    SUM(IFNULL(w.Hours, 0)) AS Total_Hours_Per_Week
+FROM PROJECT p
+JOIN DEPARTMENT d ON p.Dnum = d.Dnumber
+LEFT JOIN WORKS_ON w ON p.Pnumber = w.Pno
+GROUP BY p.Pnumber, p.Pname, d.Dname;
+\end{lstlisting}
+
+\textbf{Explanation:} This view joins PROJECT, DEPARTMENT, and WORKS\_ON tables, using GROUP BY to aggregate employee counts and total hours per project.
+
+\subsection{View (d): Projects with More Than Two Employees}
+
+\textbf{Requirement:} A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project with more than two employees working on it.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS ProjectInfoMoreThanTwo;
+CREATE VIEW ProjectInfoMoreThanTwo AS
+SELECT 
+    p.Pname AS Project_Name,
+    d.Dname AS Controlling_Department,
+    COUNT(w.Essn) AS Number_of_Employees,
+    SUM(IFNULL(w.Hours, 0)) AS Total_Hours_Per_Week
+FROM PROJECT p
+JOIN DEPARTMENT d ON p.Dnum = d.Dnumber
+LEFT JOIN WORKS_ON w ON p.Pnumber = w.Pno
+GROUP BY p.Pnumber, p.Pname, d.Dname
+HAVING COUNT(w.Essn) > 2;
+\end{lstlisting}
+
+\textbf{Explanation:} Similar to View (c), but with a HAVING clause to filter projects that have more than 2 employees.
+
+\subsection{View (e): Employees with More Than 2 Dependents}
+
+\textbf{Requirement:} A view (SSN, Full Name of employee, Number of dependents) that includes information about employees who have the number of dependents greater than 2.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS EmployeesWithManyDependents;
+CREATE VIEW EmployeesWithManyDependents AS
+SELECT 
+    e.Ssn AS SSN,
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Full_Name,
+    COUNT(dep.Dependent_name) AS Number_of_Dependents
+FROM EMPLOYEE e
+JOIN DEPENDENT dep ON e.Ssn = dep.Essn
+GROUP BY e.Ssn, e.Fname, e.Minit, e.Lname
+HAVING COUNT(dep.Dependent_name) > 2;
+\end{lstlisting}
+
+\textbf{Explanation:} This view joins EMPLOYEE and DEPENDENT tables, groups by employee, and filters those with more than 2 dependents using HAVING.
+
+\subsection{View (f): July Birthday Employees}
+
+\textbf{Requirement:} A view (Full Name of employee, date of birth, gender) for those employees who have their birthdate in July.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS JulyBirthdayEmployees;
+CREATE VIEW JulyBirthdayEmployees AS
+SELECT 
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Full_Name,
+    e.Bdate AS Date_of_Birth,
+    e.Sex AS Gender
+FROM EMPLOYEE e
+WHERE MONTH(e.Bdate) = 7;
+\end{lstlisting}
+
+\textbf{Explanation:} This view uses the MONTH() function to filter employees born in July (month 7).
+
+\subsection{View (g): Young Dependents (Under 18)}
+
+\textbf{Requirement:} A view (Name of dependent, SSN of employee, date of birth of dependent) that includes information on all dependents who are less than 18 years old.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS YoungDependents;
+CREATE VIEW YoungDependents AS
+SELECT 
+    dep.Dependent_name AS Dependent_Name,
+    dep.Essn AS Employee_SSN,
+    dep.Bdate AS Dependent_Date_of_Birth
+FROM DEPENDENT dep
+WHERE TIMESTAMPDIFF(YEAR, dep.Bdate, CURDATE()) < 18;
+\end{lstlisting}
+
+\textbf{Explanation:} This view uses TIMESTAMPDIFF() to calculate the age of dependents and filters those under 18 years old.
+
+% ==========================================
+\section{Part 2: Triggers}
+% ==========================================
+
+\subsection{Trigger (a.1): Supervisor Must Be Older}
+
+\textbf{Requirement:} The supervisor of an employee must be older than the employee.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_supervisor_older_insert;
+DELIMITER //
+CREATE TRIGGER trg_supervisor_older_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE supervisor_bdate DATE;
+    IF NEW.Super_ssn IS NOT NULL THEN
+        SELECT Bdate INTO supervisor_bdate 
+        FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        IF supervisor_bdate IS NOT NULL AND NEW.Bdate <= supervisor_bdate THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Supervisor must be older than the employee.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\textbf{Explanation:} This trigger checks the birthdate of the supervisor before inserting an employee. If the supervisor is not older, it raises an error using SIGNAL.
+
+\subsection{Trigger (a.2): Salary Cannot Exceed Supervisor's Salary}
+
+\textbf{Requirement:} The salary of an employee cannot be greater than the salary of his/her supervisor.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_salary_less_than_supervisor_insert;
+DELIMITER //
+CREATE TRIGGER trg_salary_less_than_supervisor_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE supervisor_salary DECIMAL(10, 2);
+    IF NEW.Super_ssn IS NOT NULL THEN
+        SELECT Salary INTO supervisor_salary 
+        FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        IF supervisor_salary IS NOT NULL AND NEW.Salary > supervisor_salary THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Employee salary cannot be greater than supervisor salary.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.3): Salary Can Only Increase}
+
+\textbf{Requirement:} The salary of an employee can only increase.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_salary_only_increase;
+DELIMITER //
+CREATE TRIGGER trg_salary_only_increase
+BEFORE UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary < OLD.Salary THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Employee salary can only increase, not decrease.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.4): Maximum 20\% Salary Increase}
+
+\textbf{Requirement:} When increasing salary of employee, the increasing amount must not be more than 20\% of current salary.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_salary_increase_max_20_percent;
+DELIMITER //
+CREATE TRIGGER trg_salary_increase_max_20_percent
+BEFORE UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > OLD.Salary THEN
+        IF (NEW.Salary - OLD.Salary) > (OLD.Salary * 0.20) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Salary increase cannot exceed 20% of current salary.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.5): Maximum 4 Projects Per Employee}
+
+\textbf{Requirement:} An employee works on at most 4 projects.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_max_4_projects_insert;
+DELIMITER //
+CREATE TRIGGER trg_max_4_projects_insert
+BEFORE INSERT ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE project_count INT;
+    SELECT COUNT(*) INTO project_count FROM WORKS_ON WHERE Essn = NEW.Essn;
+    IF project_count >= 4 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: An employee can work on at most 4 projects.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.6): Maximum 56 Hours Per Week}
+
+\textbf{Requirement:} The maximum number of hours an employee can work on all projects per week is 56.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_max_56_hours_insert;
+DELIMITER //
+CREATE TRIGGER trg_max_56_hours_insert
+BEFORE INSERT ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE total_hours DECIMAL(5, 1);
+    SELECT IFNULL(SUM(Hours), 0) INTO total_hours 
+    FROM WORKS_ON WHERE Essn = NEW.Essn;
+    IF (total_hours + IFNULL(NEW.Hours, 0)) > 56 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Total hours per week cannot exceed 56.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.7): Project Location Must Match Department Location}
+
+\textbf{Requirement:} The location of a project must be one of the locations of its department.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_project_location_valid_insert;
+DELIMITER //
+CREATE TRIGGER trg_project_location_valid_insert
+BEFORE INSERT ON PROJECT
+FOR EACH ROW
+BEGIN
+    DECLARE location_exists INT;
+    SELECT COUNT(*) INTO location_exists 
+    FROM DEPT_LOCATIONS 
+    WHERE Dnumber = NEW.Dnum AND Dlocation = NEW.Plocation;
+    IF location_exists = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Project location must be one of its department locations.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.8): Manager Salary Must Be Highest}
+
+\textbf{Requirement:} The salary of a department manager must be higher than the other employees working for that department.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_manager_salary_highest_insert;
+DELIMITER //
+CREATE TRIGGER trg_manager_salary_highest_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE manager_salary DECIMAL(10, 2);
+    DECLARE manager_ssn CHAR(9);
+    
+    IF NEW.Dno IS NOT NULL THEN
+        SELECT Mgr_ssn INTO manager_ssn FROM DEPARTMENT WHERE Dnumber = NEW.Dno;
+        IF manager_ssn IS NOT NULL AND manager_ssn != NEW.Ssn THEN
+            SELECT Salary INTO manager_salary FROM EMPLOYEE WHERE Ssn = manager_ssn;
+            IF manager_salary IS NOT NULL AND NEW.Salary >= manager_salary THEN
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Error: Employee salary cannot be equal or greater than department manager salary.';
+            END IF;
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (a.9): Only Managers Can Work Less Than 5 Hours}
+
+\textbf{Requirement:} Only department managers can work less than 5 hours on a project.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_min_5_hours_non_manager_insert;
+DELIMITER //
+CREATE TRIGGER trg_min_5_hours_non_manager_insert
+BEFORE INSERT ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE is_manager INT;
+    IF NEW.Hours IS NOT NULL AND NEW.Hours < 5 THEN
+        SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Essn;
+        IF is_manager = 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Only department managers can work less than 5 hours on a project.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Task (b): Num\_of\_Emp Derived Attribute}
+
+\textbf{Requirement:} Alter table Department to add the attribute Num\_of\_Emp that stores the number of employees working for each department. This attribute is a derived attribute from Employee.DNO and its value must be automatically calculated.
+
+\begin{lstlisting}
+-- Add the column
+ALTER TABLE DEPARTMENT ADD COLUMN Num_of_Emp INT DEFAULT 0;
+
+-- Initialize the column with current counts
+UPDATE DEPARTMENT d
+SET Num_of_Emp = (SELECT COUNT(*) FROM EMPLOYEE e WHERE e.Dno = d.Dnumber);
+
+-- Trigger for INSERT
+DROP TRIGGER IF EXISTS trg_update_num_emp_insert;
+DELIMITER //
+CREATE TRIGGER trg_update_num_emp_insert
+AFTER INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Dno IS NOT NULL THEN
+        UPDATE DEPARTMENT 
+        SET Num_of_Emp = Num_of_Emp + 1 
+        WHERE Dnumber = NEW.Dno;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for DELETE
+DROP TRIGGER IF EXISTS trg_update_num_emp_delete;
+DELIMITER //
+CREATE TRIGGER trg_update_num_emp_delete
+AFTER DELETE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF OLD.Dno IS NOT NULL THEN
+        UPDATE DEPARTMENT 
+        SET Num_of_Emp = Num_of_Emp - 1 
+        WHERE Dnumber = OLD.Dno;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE
+DROP TRIGGER IF EXISTS trg_update_num_emp_update;
+DELIMITER //
+CREATE TRIGGER trg_update_num_emp_update
+AFTER UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF OLD.Dno IS NOT NULL AND (NEW.Dno IS NULL OR OLD.Dno != NEW.Dno) THEN
+        UPDATE DEPARTMENT SET Num_of_Emp = Num_of_Emp - 1 WHERE Dnumber = OLD.Dno;
+    END IF;
+    IF NEW.Dno IS NOT NULL AND (OLD.Dno IS NULL OR OLD.Dno != NEW.Dno) THEN
+        UPDATE DEPARTMENT SET Num_of_Emp = Num_of_Emp + 1 WHERE Dnumber = NEW.Dno;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Trigger (e): Salary Log for High Salaries}
+
+\textbf{Requirement:} Write a trigger that logs any changes in case the new salary is greater than 50000 updated or inserted into our database.
+
+\begin{lstlisting}
+-- Create the LOG table
+DROP TABLE IF EXISTS SALARY_LOG;
+CREATE TABLE SALARY_LOG (
+    Log_id INT AUTO_INCREMENT PRIMARY KEY,
+    SSN CHAR(9),
+    Content VARCHAR(255),
+    Log_Date DATE
+);
+
+-- Trigger for INSERT
+DROP TRIGGER IF EXISTS trg_log_salary_insert;
+DELIMITER //
+CREATE TRIGGER trg_log_salary_insert
+AFTER INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > 50000 THEN
+        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
+        VALUES (NEW.Ssn, CONCAT('SALARY INSERT: ', NEW.Salary), CURDATE());
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE
+DROP TRIGGER IF EXISTS trg_log_salary_update;
+DELIMITER //
+CREATE TRIGGER trg_log_salary_update
+AFTER UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > 50000 THEN
+        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
+        VALUES (NEW.Ssn, CONCAT('SALARY UPDATE FROM ', OLD.Salary, ' TO ', NEW.Salary), CURDATE());
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+% ==========================================
+\section{Part 3: Functions}
+% ==========================================
+
+\subsection{Function (c): Get Total Projects for Employee}
+
+\textbf{Requirement:} Write a function that returns the total number of projects when given an employee's ID.
+
+\begin{lstlisting}
+DROP FUNCTION IF EXISTS GetTotalProjectsForEmployee;
+DELIMITER //
+CREATE FUNCTION GetTotalProjectsForEmployee(emp_ssn CHAR(9))
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE total_projects INT;
+    
+    SELECT COUNT(*) INTO total_projects
+    FROM WORKS_ON
+    WHERE Essn = emp_ssn;
+    
+    RETURN total_projects;
+END //
+DELIMITER ;
+
+-- Example usage:
+SELECT GetTotalProjectsForEmployee('123456789') AS Total_Projects;
+SELECT GetTotalProjectsForEmployee('333445555') AS Total_Projects;
+\end{lstlisting}
+
+\textbf{Explanation:} This function takes an employee SSN as input and returns the count of projects that employee works on from the WORKS\_ON table.
+
+% ==========================================
+\section{Part 4: Stored Procedures}
+% ==========================================
+
+\subsection{Stored Procedure (d): Print Employee Details}
+
+\textbf{Requirement:} Create a stored procedure that prints SSN, Full name, Department name, and annual salary of all employees.
+
+\begin{lstlisting}
+DROP PROCEDURE IF EXISTS PrintEmployeeDetails;
+DELIMITER //
+CREATE PROCEDURE PrintEmployeeDetails()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_ssn CHAR(9);
+    DECLARE v_fullname VARCHAR(50);
+    DECLARE v_dname VARCHAR(25);
+    DECLARE v_annual_salary DECIMAL(12, 2);
+    
+    DECLARE emp_cursor CURSOR FOR
+        SELECT 
+            e.Ssn,
+            CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Full_Name,
+            d.Dname,
+            e.Salary * 12 AS Annual_Salary
+        FROM EMPLOYEE e
+        LEFT JOIN DEPARTMENT d ON e.Dno = d.Dnumber;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    DROP TEMPORARY TABLE IF EXISTS temp_employee_details;
+    CREATE TEMPORARY TABLE temp_employee_details (
+        SSN CHAR(9),
+        Full_Name VARCHAR(50),
+        Department_Name VARCHAR(25),
+        Annual_Salary DECIMAL(12, 2)
+    );
+    
+    OPEN emp_cursor;
+    
+    read_loop: LOOP
+        FETCH emp_cursor INTO v_ssn, v_fullname, v_dname, v_annual_salary;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        INSERT INTO temp_employee_details 
+        VALUES (v_ssn, v_fullname, v_dname, v_annual_salary);
+    END LOOP;
+    
+    CLOSE emp_cursor;
+    SELECT * FROM temp_employee_details;
+    DROP TEMPORARY TABLE IF EXISTS temp_employee_details;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Stored Procedure (f): Print Employee Salary Levels}
+
+\textbf{Requirement:} Write a stored procedure that prints out the level of salary for each employee.
+
+\begin{lstlisting}
+DROP PROCEDURE IF EXISTS PrintEmployeeSalaryLevel;
+DELIMITER //
+CREATE PROCEDURE PrintEmployeeSalaryLevel()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE v_ssn CHAR(9);
+    DECLARE v_fullname VARCHAR(50);
+    DECLARE v_salary DECIMAL(10, 2);
+    DECLARE v_level VARCHAR(10);
+    
+    DECLARE emp_cursor CURSOR FOR
+        SELECT 
+            e.Ssn,
+            CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Full_Name,
+            e.Salary
+        FROM EMPLOYEE e;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+    
+    DROP TEMPORARY TABLE IF EXISTS temp_salary_levels;
+    CREATE TEMPORARY TABLE temp_salary_levels (
+        SSN CHAR(9),
+        Full_Name VARCHAR(50),
+        Salary_Level VARCHAR(10)
+    );
+    
+    OPEN emp_cursor;
+    
+    read_loop: LOOP
+        FETCH emp_cursor INTO v_ssn, v_fullname, v_salary;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        IF v_salary < 20000 THEN
+            SET v_level = 'level C';
+        ELSEIF v_salary >= 20000 AND v_salary <= 50000 THEN
+            SET v_level = 'level B';
+        ELSE
+            SET v_level = 'level A';
+        END IF;
+        
+        INSERT INTO temp_salary_levels VALUES (v_ssn, v_fullname, v_level);
+    END LOOP;
+    
+    CLOSE emp_cursor;
+    SELECT * FROM temp_salary_levels;
+    DROP TEMPORARY TABLE IF EXISTS temp_salary_levels;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+% ==========================================
+\section{Part 5: Exercise 2 - Hotel Database}
+% ==========================================
+
+\subsection{Database Schema}
+
+\begin{lstlisting}
+CREATE TABLE Hotel (
+    hotelNo INT PRIMARY KEY,
+    hotelName VARCHAR(50) NOT NULL,
+    city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Guest (
+    guestNo INT PRIMARY KEY,
+    guestName VARCHAR(50) NOT NULL,
+    guestAddress VARCHAR(100),
+    TotalAmount DECIMAL(12, 2) DEFAULT 0
+);
+
+CREATE TABLE Room (
+    roomNo INT,
+    hotelNo INT,
+    type VARCHAR(20) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    NumAdultMax INT DEFAULT 2,
+    PRIMARY KEY (roomNo, hotelNo),
+    FOREIGN KEY (hotelNo) REFERENCES Hotel(hotelNo)
+);
+
+CREATE TABLE Booking (
+    hotelNo INT,
+    dateFrom DATE,
+    roomNo INT,
+    guestNo INT,
+    dateTo DATE,
+    NumOfAdult INT DEFAULT 1,
+    PRIMARY KEY (hotelNo, dateFrom, roomNo),
+    FOREIGN KEY (hotelNo, roomNo) REFERENCES Room(roomNo, hotelNo),
+    FOREIGN KEY (guestNo) REFERENCES Guest(guestNo)
+);
+\end{lstlisting}
+
+\subsection{Constraint (a): Double Room Price > \$100}
+
+\begin{lstlisting}
+ALTER TABLE Room 
+ADD CONSTRAINT chk_double_room_price 
+CHECK (type != 'double' OR price > 100);
+
+-- Alternative trigger implementation:
+DROP TRIGGER IF EXISTS trg_double_room_price_insert;
+DELIMITER //
+CREATE TRIGGER trg_double_room_price_insert
+BEFORE INSERT ON Room
+FOR EACH ROW
+BEGIN
+    IF NEW.type = 'double' AND NEW.price <= 100 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Price of double rooms must be greater than $100.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Constraint (b): Double Room > Highest Single Room}
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_double_greater_single_insert;
+DELIMITER //
+CREATE TRIGGER trg_double_greater_single_insert
+BEFORE INSERT ON Room
+FOR EACH ROW
+BEGIN
+    DECLARE max_single_price DECIMAL(10, 2);
+    
+    IF NEW.type = 'double' THEN
+        SELECT IFNULL(MAX(price), 0) INTO max_single_price 
+        FROM Room WHERE hotelNo = NEW.hotelNo AND type = 'single';
+        
+        IF NEW.price <= max_single_price THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Double room price must be greater than highest single room price.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Constraint (c): No Overlapping Bookings}
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_no_overlapping_bookings_insert;
+DELIMITER //
+CREATE TRIGGER trg_no_overlapping_bookings_insert
+BEFORE INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE overlap_count INT;
+    
+    SELECT COUNT(*) INTO overlap_count
+    FROM Booking
+    WHERE guestNo = NEW.guestNo
+      AND NOT (NEW.dateTo <= dateFrom OR NEW.dateFrom >= dateTo);
+    
+    IF overlap_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Guest cannot have overlapping bookings.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Constraint (d): NumOfAdult <= NumAdultMax}
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_check_num_adults_insert;
+DELIMITER //
+CREATE TRIGGER trg_check_num_adults_insert
+BEFORE INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE max_adults INT;
+    
+    SELECT NumAdultMax INTO max_adults 
+    FROM Room WHERE roomNo = NEW.roomNo AND hotelNo = NEW.hotelNo;
+    
+    IF NEW.NumOfAdult > max_adults THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Number of adults exceeds room capacity.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Constraint (e): Auto-Calculate TotalAmount}
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_update_total_amount_insert;
+DELIMITER //
+CREATE TRIGGER trg_update_total_amount_insert
+AFTER INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE room_price DECIMAL(10, 2);
+    DECLARE num_days INT;
+    DECLARE booking_cost DECIMAL(12, 2);
+    
+    SELECT price INTO room_price 
+    FROM Room WHERE roomNo = NEW.roomNo AND hotelNo = NEW.hotelNo;
+    
+    SET num_days = DATEDIFF(NEW.dateTo, NEW.dateFrom);
+    SET booking_cost = room_price * num_days;
+    
+    UPDATE Guest 
+    SET TotalAmount = TotalAmount + booking_cost 
+    WHERE guestNo = NEW.guestNo;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsection{Constraint (f): INSTEAD OF Trigger for LondonHotelRoom View}
+
+\begin{lstlisting}
+-- Create the view
+DROP VIEW IF EXISTS LondonHotelRoom;
+CREATE VIEW LondonHotelRoom AS
+SELECT h.hotelNo, hotelName, city, roomNo, type, price
+FROM Hotel h, Room r
+WHERE h.hotelNo = r.hotelNo AND city = 'London';
+
+-- MySQL doesn't support INSTEAD OF triggers, use stored procedure
+DROP PROCEDURE IF EXISTS InsertIntoLondonHotelRoom;
+DELIMITER //
+CREATE PROCEDURE InsertIntoLondonHotelRoom(
+    IN p_hotelNo INT,
+    IN p_hotelName VARCHAR(50),
+    IN p_roomNo INT,
+    IN p_type VARCHAR(20),
+    IN p_price DECIMAL(10, 2)
+)
+BEGIN
+    DECLARE hotel_exists INT;
+    
+    SELECT COUNT(*) INTO hotel_exists FROM Hotel WHERE hotelNo = p_hotelNo;
+    
+    IF hotel_exists = 0 THEN
+        INSERT INTO Hotel (hotelNo, hotelName, city) 
+        VALUES (p_hotelNo, p_hotelName, 'London');
+    ELSE
+        UPDATE Hotel SET hotelName = p_hotelName WHERE hotelNo = p_hotelNo;
+    END IF;
+    
+    INSERT INTO Room (roomNo, hotelNo, type, price) 
+    VALUES (p_roomNo, p_hotelNo, p_type, p_price);
+END //
+DELIMITER ;
+\end{lstlisting}
+
+% ==========================================
+\section{Conclusion}
+% ==========================================
+
+This lab demonstrated the implementation of various database objects in MySQL:
+
+\begin{itemize}
+    \item \textbf{Views:} Created 7 views to present data from multiple tables in a simplified manner
+    \item \textbf{Triggers:} Implemented business rules and constraints using BEFORE/AFTER triggers
+    \item \textbf{Functions:} Created a user-defined function to encapsulate reusable logic
+    \item \textbf{Stored Procedures:} Developed procedures using cursors for iterative processing
+    \item \textbf{Constraints:} Applied integrity constraints on the Hotel database
+\end{itemize}
+
+These database objects help maintain data integrity, enforce business rules, and provide convenient data access patterns.
+
+\end{document}
