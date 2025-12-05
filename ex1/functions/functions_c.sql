@@ -1,15 +1,13 @@
 -- ==========================================
--- LAB 5: FUNCTIONS (c)
+-- LAB 5: FUNCTION - Task c
 -- Database: COMPANY_Lab5
--- ==========================================
-
-USE COMPANY_Lab5;
-
 -- ==========================================
 -- c. Write a function that returns the total number of projects when given an employee's ID.
 --    Input: employee ID
 --    Output: total number of projects
 -- ==========================================
+
+USE COMPANY_Lab5;
 
 DROP FUNCTION IF EXISTS GetTotalProjectsForEmployee;
 DELIMITER //
@@ -27,7 +25,3 @@ BEGIN
     RETURN total_projects;
 END //
 DELIMITER ;
-
--- Example usage:
--- SELECT GetTotalProjectsForEmployee('123456789') AS Total_Projects;
--- SELECT GetTotalProjectsForEmployee('333445555') AS Total_Projects;
