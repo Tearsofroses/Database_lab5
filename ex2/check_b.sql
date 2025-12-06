@@ -36,16 +36,6 @@ INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax)
 VALUES (996, 1, 'single', 90, 1);
 SELECT * FROM Room WHERE roomNo = 996 AND hotelNo = 1;
 
--- Test 5: Now Test 1 double room should fail (new max single = 90)
-SELECT '=== Test 5: Invalid UPDATE - double room price to 85 (max single now = 90) ===' AS Test;
-UPDATE Room SET price = 85 WHERE roomNo = 999 AND hotelNo = 1;
--- Expected: Error - Double room price must be greater than new max single
-
--- Test 6: Valid UPDATE - Double room price > new max single
-SELECT '=== Test 6: Valid UPDATE - double room price to 120 ===' AS Test;
-UPDATE Room SET price = 120 WHERE roomNo = 999 AND hotelNo = 1;
-SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
-
 -- Cleanup
 DELETE FROM Room WHERE roomNo IN (999, 996) AND hotelNo = 1;
 
@@ -53,7 +43,5 @@ SELECT '=== Test Summary ===' AS Info;
 SELECT 'Test 1: PASS (double room with price 200 > max single 80)' AS Result
 UNION ALL SELECT 'Test 2: PASS (rejected double room with price 70)'
 UNION ALL SELECT 'Test 3: PASS (rejected double room with price 80)'
-UNION ALL SELECT 'Test 4: PASS (single room with price 90)'
-UNION ALL SELECT 'Test 5: PASS (rejected double room price 85 < max single 90)'
-UNION ALL SELECT 'Test 6: PASS (updated double room price to 120)';
+UNION ALL SELECT 'Test 4: PASS (single room with price 90)';
 

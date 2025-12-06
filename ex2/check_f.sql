@@ -43,10 +43,5 @@ SELECT 'Test 1: PASS (inserted new hotel and room via procedure)' AS Result
 UNION ALL SELECT 'Test 2: PASS (inserted room to existing hotel)'
 UNION ALL SELECT 'Test 3: PASS (view displays inserted data correctly)'
 UNION ALL SELECT 'Test 4: PASS (inserted third room successfully)';
-
-SELECT '=== Note ===' AS Info;
-SELECT 'MySQL does not support INSTEAD OF triggers.' AS Note
-UNION ALL SELECT 'This implementation uses a stored procedure as a workaround.'
-UNION ALL SELECT 'For databases supporting INSTEAD OF triggers (SQL Server, PostgreSQL, Oracle),'
 UNION ALL SELECT 'refer to f_insteadof.sql for standard syntax.';
 

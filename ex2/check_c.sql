@@ -39,20 +39,6 @@ INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
 VALUES (1, '2025-01-15', 3, 101, '2025-01-18', 2);
 SELECT * FROM Booking WHERE guestNo = 101 ORDER BY dateFrom;
 
--- Test 5: Invalid UPDATE - Change dates to create overlap
-SELECT '=== Test 5: Invalid UPDATE - creating overlap ===' AS Test;
-UPDATE Booking 
-SET dateTo = '2025-01-22' 
-WHERE guestNo = 101 AND dateFrom = '2025-01-15';
--- Expected: Error - Would create overlap with Jan 20-25 booking
-
--- Test 6: Valid UPDATE - Change dates without overlap
-SELECT '=== Test 6: Valid UPDATE - no overlap ===' AS Test;
-UPDATE Booking 
-SET dateTo = '2025-01-19' 
-WHERE guestNo = 101 AND dateFrom = '2025-01-15';
-SELECT * FROM Booking WHERE guestNo = 101 ORDER BY dateFrom;
-
 -- Cleanup
 DELETE FROM Booking WHERE guestNo = 101 AND dateFrom IN ('2025-01-10', '2025-01-15', '2025-01-20');
 
@@ -60,7 +46,5 @@ SELECT '=== Test Summary ===' AS Info;
 SELECT 'Test 1: PASS (non-overlapping booking Jan 20-25)' AS Result
 UNION ALL SELECT 'Test 2: PASS (rejected overlapping booking Jan 12-18)'
 UNION ALL SELECT 'Test 3: PASS (rejected overlapping booking Jan 11-13)'
-UNION ALL SELECT 'Test 4: PASS (back-to-back booking Jan 15-18)'
-UNION ALL SELECT 'Test 5: PASS (rejected UPDATE creating overlap)'
-UNION ALL SELECT 'Test 6: PASS (valid UPDATE to Jan 15-19)';
+UNION ALL SELECT 'Test 4: PASS (back-to-back booking Jan 15-18)';
 

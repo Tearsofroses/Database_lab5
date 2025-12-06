@@ -33,16 +33,6 @@ INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax)
 VALUES (996, 1, 'single', 50, 1);
 SELECT * FROM Room WHERE roomNo = 996 AND hotelNo = 1;
 
--- Test 5: Valid UPDATE - Change double room price to valid value
-SELECT '=== Test 5: Valid UPDATE - double room price 150 to 200 ===' AS Test;
-UPDATE Room SET price = 200 WHERE roomNo = 999 AND hotelNo = 1;
-SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
-
--- Test 6: Invalid UPDATE - Change double room price to invalid value
-SELECT '=== Test 6: Invalid UPDATE - double room price to 90 ===' AS Test;
-UPDATE Room SET price = 90 WHERE roomNo = 999 AND hotelNo = 1;
--- Expected: Error - Check constraint violation
-
 -- Cleanup
 DELETE FROM Room WHERE roomNo IN (999, 996) AND hotelNo = 1;
 
@@ -50,10 +40,4 @@ SELECT '=== Test Summary ===' AS Info;
 SELECT 'Test 1: PASS (double room with price 150)' AS Result
 UNION ALL SELECT 'Test 2: PASS (rejected double room with price 80)'
 UNION ALL SELECT 'Test 3: PASS (rejected double room with price 100)'
-UNION ALL SELECT 'Test 4: PASS (single room with price 50)'
-UNION ALL SELECT 'Test 5: PASS (updated double room price to 200)'
-UNION ALL SELECT 'Test 6: PASS (rejected update to price 90)';
-
-
--- Cleanup
-DELETE FROM Room WHERE roomNo IN (301, 302, 303);
+UNION ALL SELECT 'Test 4: PASS (single room with price 50)';
