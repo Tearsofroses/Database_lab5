@@ -74,6 +74,16 @@ INSERT INTO EMPLOYEE VALUES
 -- Result: Error - Supervisor must be older than the employee.
 \end{lstlisting}
 
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta1_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta1_2.png}
+\end{center}
+
+
 \subsection{Trigger (a.2): Salary Cannot Exceed Supervisor's Salary}
 
 \textbf{Requirement:} The salary of an employee cannot be greater than the salary of his/her supervisor.
@@ -131,6 +141,15 @@ INSERT INTO EMPLOYEE VALUES
 -- Result: Error - Employee salary cannot be greater than supervisor salary.
 \end{lstlisting}
 
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta2_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta2_2.png}
+\end{center}
+
 \subsection{Trigger (a.3): Salary Can Only Increase}
 
 \textbf{Requirement:} The salary of an employee can only increase.
@@ -161,6 +180,15 @@ UPDATE EMPLOYEE SET Salary = 28000 WHERE Ssn = '123456789';
 -- Result: Error - Employee salary can only increase, not decrease.
 \end{lstlisting}
 
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta3_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta3_2.png}
+\end{center}
+
 \subsection{Trigger (a.4): Maximum 20\% Salary Increase}
 
 \textbf{Requirement:} When increasing salary of employee, the increasing amount must not be more than 20\% of current salary.
@@ -190,6 +218,15 @@ UPDATE EMPLOYEE SET Salary = 34500 WHERE Ssn = '123456789';
 UPDATE EMPLOYEE SET Salary = 45000 WHERE Ssn = '123456789';
 -- Result: Error - Salary increase cannot exceed 20% of current salary.
 \end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta4_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta4_2.png}
+\end{center}
 
 \subsection{Trigger (a.5): Maximum 4 Projects Per Employee}
 
@@ -230,6 +267,15 @@ SELECT Pnumber FROM PROJECT WHERE Pnumber NOT IN (SELECT Pno FROM WORKS_ON WHERE
 INSERT INTO WORKS_ON VALUES ('666884444', 1, 10);
 -- Result: Success
 \end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta5_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta5_2.png}
+\end{center}
 
 \subsection{Trigger (a.6): Maximum 56 Hours Per Week}
 
@@ -287,6 +333,15 @@ INSERT INTO WORKS_ON VALUES ('123456789', 3, 5);
 INSERT INTO WORKS_ON VALUES ('666884444', 2, 50);
 -- Result: Error - Total hours per week cannot exceed 56.
 \end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta6_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta6_2.png}
+\end{center}
 
 \subsection{Trigger (a.7): Project Location Must Match Department Location}
 
@@ -350,6 +405,15 @@ INSERT INTO PROJECT VALUES ('BadProject', 100, 'New York', 5);
 -- Result: Error - Project location must be one of its department locations.
 \end{lstlisting}
 
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta7_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta7_2.png}
+\end{center}
+
 \subsection{Trigger (a.8): Manager Salary Must Be Highest}
 
 \textbf{Requirement:} The salary of a department manager must be higher than the other employees working for that department.
@@ -397,6 +461,15 @@ INSERT INTO EMPLOYEE VALUES
 ('Test', 'F', 'Invalid', '111111115', '1990-01-01', '123 St', 'M', 50000, '333445555', 5);
 -- Result: Error - Employee salary cannot be equal or greater than manager salary.
 \end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta8_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta8_2.png}
+\end{center}
 
 \subsection{Trigger (a.9): Only Managers Can Work Less Than 5 Hours}
 
@@ -456,3 +529,12 @@ INSERT INTO WORKS_ON VALUES ('453453453', 3, 3);
 INSERT INTO WORKS_ON VALUES ('453453453', 3, 10);
 -- Result: Success
 \end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta9_1.png}
+\end{center}
+
+\begin{center}
+\includegraphics[width=1.0\textwidth]{Images/ex1/triggers/ta9_2.png}
+\end{center}
