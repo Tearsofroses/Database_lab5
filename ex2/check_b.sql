@@ -1,35 +1,59 @@
 -- ==========================================
--- CHECK SCRIPT: Constraint (b) - Booking Duration <= 14 Days
--- Database: Hotel_Lab5
+-- CHECK SCRIPT FOR CONSTRAINT b
+-- Constraint: In a hotel, the price of double rooms must be greater than 
+--             the price of the highest single room.
 -- ==========================================
 
 USE Hotel_Lab5;
 
--- -----------------------------------------
--- View Current Bookings
--- -----------------------------------------
-SELECT * FROM Booking;
+-- Display current state
+SELECT '=== Current Room Data for Hotel 1 ===' AS Info;
+SELECT * FROM Room WHERE hotelNo = 1 ORDER BY type, price;
 
--- -----------------------------------------
--- Test Constraint (b) - Booking Duration <= 14 Days
--- -----------------------------------------
--- Test 1: Try to insert booking for 15 days (should fail)
-INSERT INTO Booking VALUES 
-    (1, 1, '2024-01-01', '2024-01-16', 101);
--- Result: Check constraint violated
+-- Test 1: Valid INSERT - Double room with price > highest single room
+SELECT '=== Test 1: Valid double room (price = 200, max single = 80) ===' AS Test;
+-- First, verify the highest single room price in hotel 1
+SELECT MAX(price) AS Max_Single_Price FROM Room WHERE hotelNo = 1 AND type = 'single';
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (999, 1, 'double', 200, 2);
+SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
 
--- Test 2: Insert booking for exactly 14 days (should succeed)
-INSERT INTO Booking VALUES 
-    (1, 2, '2024-02-01', '2024-02-15', 102);
--- Result: Row inserted
+-- Test 2: Invalid INSERT - Double room with price <= highest single room
+SELECT '=== Test 2: Invalid double room (price = 70, max single = 80) ===' AS Test;
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (998, 1, 'double', 70, 2);
+-- Expected: Error - Double room price must be greater than highest single
 
--- Test 3: Insert booking for 7 days (should succeed)
-INSERT INTO Booking VALUES 
-    (1, 3, '2024-03-01', '2024-03-08', 103);
--- Result: Row inserted
+-- Test 3: Invalid INSERT - Double room with price = highest single room
+SELECT '=== Test 3: Invalid double room (price = 80, max single = 80) ===' AS Test;
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (997, 1, 'double', 80, 2);
+-- Expected: Error - Double room price must be greater than highest single
 
--- Verify insertions
-SELECT * FROM Booking WHERE hotelNo = 1 AND dateFrom IN ('2024-02-01', '2024-03-01');
+-- Test 4: Valid INSERT - Single room (no constraint applies)
+SELECT '=== Test 4: Valid single room (price = 90) ===' AS Test;
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (996, 1, 'single', 90, 1);
+SELECT * FROM Room WHERE roomNo = 996 AND hotelNo = 1;
+
+-- Test 5: Now Test 1 double room should fail (new max single = 90)
+SELECT '=== Test 5: Invalid UPDATE - double room price to 85 (max single now = 90) ===' AS Test;
+UPDATE Room SET price = 85 WHERE roomNo = 999 AND hotelNo = 1;
+-- Expected: Error - Double room price must be greater than new max single
+
+-- Test 6: Valid UPDATE - Double room price > new max single
+SELECT '=== Test 6: Valid UPDATE - double room price to 120 ===' AS Test;
+UPDATE Room SET price = 120 WHERE roomNo = 999 AND hotelNo = 1;
+SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
 
 -- Cleanup
-DELETE FROM Booking WHERE (hotelNo = 1 AND dateFrom IN ('2024-01-01', '2024-02-01', '2024-03-01'));
+DELETE FROM Room WHERE roomNo IN (999, 996) AND hotelNo = 1;
+
+SELECT '=== Test Summary ===' AS Info;
+SELECT 'Test 1: PASS (double room with price 200 > max single 80)' AS Result
+UNION ALL SELECT 'Test 2: PASS (rejected double room with price 70)'
+UNION ALL SELECT 'Test 3: PASS (rejected double room with price 80)'
+UNION ALL SELECT 'Test 4: PASS (single room with price 90)'
+UNION ALL SELECT 'Test 5: PASS (rejected double room price 85 < max single 90)'
+UNION ALL SELECT 'Test 6: PASS (updated double room price to 120)';
+

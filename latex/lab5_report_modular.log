@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.17)  6 DEC 2025 10:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (MiKTeX 25.4) (preloaded format=pdflatex 2025.10.17)  6 DEC 2025 10:57
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -513,7 +513,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
  (sections/2_views.tex
 LaTeX Font Info:    Font shape `T1/cmtt/bx/n' in size <10> not available
 (Font)              Font shape `T1/cmtt/m/n' tried instead on input line 21.
-<Images/ex1/views/a.png, id=189, 577.15625pt x 171.13937pt>
+<Images/ex1/views/a.png, id=194, 577.15625pt x 171.13937pt>
 File: Images/ex1/views/a.png Graphic file (type png)
 <use Images/ex1/views/a.png>
 Package pdftex.def Info: Images/ex1/views/a.png  used on input line 41.
@@ -532,7 +532,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 
 ]
-<Images/ex1/views/b.png, id=217, 574.64688pt x 184.18813pt>
+<Images/ex1/views/b.png, id=222, 574.64688pt x 184.18813pt>
 File: Images/ex1/views/b.png Graphic file (type png)
 <use Images/ex1/views/b.png>
 Package pdftex.def Info: Images/ex1/views/b.png  used on input line 71.
@@ -547,7 +547,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [5 <./Images/ex1/views/a.png> <./Images/ex1/views/b.png>]
-<Images/ex1/views/c.png, id=244, 578.16pt x 225.34187pt>
+<Images/ex1/views/c.png, id=249, 578.16pt x 225.34187pt>
 File: Images/ex1/views/c.png Graphic file (type png)
 <use Images/ex1/views/c.png>
 Package pdftex.def Info: Images/ex1/views/c.png  used on input line 102.
@@ -562,12 +562,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [6 <./Images/ex1/views/c.png>]
-<Images/ex1/views/d.png, id=278, 579.16376pt x 182.18062pt>
+<Images/ex1/views/d.png, id=283, 579.16376pt x 182.18062pt>
 File: Images/ex1/views/d.png Graphic file (type png)
 <use Images/ex1/views/d.png>
 Package pdftex.def Info: Images/ex1/views/d.png  used on input line 134.
 (pdftex.def)             Requested size: 362.37569pt x 113.98769pt.
-<Images/ex1/views/e.png, id=279, 582.67688pt x 160.6pt>
+<Images/ex1/views/e.png, id=284, 582.67688pt x 160.6pt>
 File: Images/ex1/views/e.png Graphic file (type png)
 <use Images/ex1/views/e.png>
 Package pdftex.def Info: Images/ex1/views/e.png  used on input line 164.
@@ -582,12 +582,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [7 <./Images/ex1/views/d.png> <./Images/ex1/views/e.png>]
-<Images/ex1/views/f.png, id=306, 571.63562pt x 147.04938pt>
+<Images/ex1/views/f.png, id=311, 571.63562pt x 147.04938pt>
 File: Images/ex1/views/f.png Graphic file (type png)
 <use Images/ex1/views/f.png>
 Package pdftex.def Info: Images/ex1/views/f.png  used on input line 192.
 (pdftex.def)             Requested size: 362.37569pt x 93.21823pt.
-<Images/ex1/views/g.png, id=307, 572.1375pt x 142.03062pt>
+<Images/ex1/views/g.png, id=312, 572.1375pt x 142.03062pt>
 File: Images/ex1/views/g.png Graphic file (type png)
 <use Images/ex1/views/g.png>
 Package pdftex.def Info: Images/ex1/views/g.png  used on input line 220.
@@ -618,12 +618,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 
 
 ]
-<Images/ex1/triggers/ta1_1.png, id=366, 680.04062pt x 58.71938pt>
+<Images/ex1/triggers/ta1_1.png, id=371, 922.94812pt x 554.57187pt>
 File: Images/ex1/triggers/ta1_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta1_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta1_1.png  used on input line 79.
-(pdftex.def)             Requested size: 452.9679pt x 39.11238pt.
-<Images/ex1/triggers/ta1_2.png, id=367, 730.22812pt x 69.25874pt>
+(pdftex.def)             Requested size: 452.9679pt x 272.17415pt.
+<Images/ex1/triggers/ta1_2.png, id=372, 730.22812pt x 69.25874pt>
 File: Images/ex1/triggers/ta1_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta1_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta1_2.png  used on input line 83.
@@ -637,12 +637,26 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[10 <./Images/ex1/triggers/ta1_1.png> <./Images/ex1/triggers/ta1_2.png>]
-<Images/ex1/triggers/ta2_1.png, id=405, 677.53125pt x 132.495pt>
+[10 <./Images/ex1/triggers/ta1_1.png>]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[11 <./Images/ex1/triggers/ta1_2.png>]
+<Images/ex1/triggers/ta2_1.png, id=447, 928.97063pt x 559.59062pt>
 File: Images/ex1/triggers/ta2_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta2_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta2_1.png  used on input line 146.
-(pdftex.def)             Requested size: 452.9679pt x 88.58315pt.
+(pdftex.def)             Requested size: 452.9679pt x 272.86124pt.
+<Images/ex1/triggers/ta2_2.png, id=448, 759.33687pt x 92.84688pt>
+File: Images/ex1/triggers/ta2_2.png Graphic file (type png)
+<use Images/ex1/triggers/ta2_2.png>
+Package pdftex.def Info: Images/ex1/triggers/ta2_2.png  used on input line 150.
+(pdftex.def)             Requested size: 452.9679pt x 55.38695pt.
 
 
 
@@ -652,18 +666,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[11]
-<Images/ex1/triggers/ta2_2.png, id=451, 759.33687pt x 92.84688pt>
-File: Images/ex1/triggers/ta2_2.png Graphic file (type png)
-<use Images/ex1/triggers/ta2_2.png>
-Package pdftex.def Info: Images/ex1/triggers/ta2_2.png  used on input line 150.
-(pdftex.def)             Requested size: 452.9679pt x 55.38695pt.
-<Images/ex1/triggers/ta3_1.png, id=452, 594.72188pt x 116.93687pt>
+[12 <./Images/ex1/triggers/ta2_1.png> <./Images/ex1/triggers/ta2_2.png>]
+<Images/ex1/triggers/ta3_1.png, id=474, 935.99687pt x 567.62062pt>
 File: Images/ex1/triggers/ta3_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta3_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta3_1.png  used on input line 185.
-(pdftex.def)             Requested size: 452.9679pt x 89.06384pt.
-<Images/ex1/triggers/ta3_2.png, id=453, 502.37688pt x 78.79437pt>
+(pdftex.def)             Requested size: 452.9679pt x 274.69804pt.
+<Images/ex1/triggers/ta3_2.png, id=475, 502.37688pt x 78.79437pt>
 File: Images/ex1/triggers/ta3_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta3_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta3_2.png  used on input line 189.
@@ -677,13 +686,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[12 <./Images/ex1/triggers/ta2_1.png> <./Images/ex1/triggers/ta2_2.png> <./Images/ex1/triggers/ta3_1.png> <./Images/ex1/triggers/ta3_2.png>]
-<Images/ex1/triggers/ta4_1.png, id=484, 482.30188pt x 78.2925pt>
+[13 <./Images/ex1/triggers/ta3_1.png> <./Images/ex1/triggers/ta3_2.png>]
+<Images/ex1/triggers/ta4_1.png, id=501, 946.03438pt x 472.76625pt>
 File: Images/ex1/triggers/ta4_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta4_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta4_1.png  used on input line 224.
-(pdftex.def)             Requested size: 452.9679pt x 73.53282pt.
-<Images/ex1/triggers/ta4_2.png, id=485, 534.99875pt x 69.25874pt>
+(pdftex.def)             Requested size: 452.9679pt x 226.36253pt.
+<Images/ex1/triggers/ta4_2.png, id=502, 534.99875pt x 69.25874pt>
 File: Images/ex1/triggers/ta4_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta4_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta4_2.png  used on input line 228.
@@ -697,13 +706,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[13 <./Images/ex1/triggers/ta4_1.png> <./Images/ex1/triggers/ta4_2.png>]
-<Images/ex1/triggers/ta5_1.png, id=525, 535.50063pt x 87.82813pt>
+[14 <./Images/ex1/triggers/ta4_1.png> <./Images/ex1/triggers/ta4_2.png>]
+<Images/ex1/triggers/ta5_1.png, id=533, 828.59563pt x 442.65375pt>
 File: Images/ex1/triggers/ta5_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta5_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta5_1.png  used on input line 273.
-(pdftex.def)             Requested size: 452.9679pt x 74.29507pt.
-<Images/ex1/triggers/ta5_2.png, id=526, 677.53125pt x 111.41624pt>
+(pdftex.def)             Requested size: 452.9679pt x 241.98785pt.
+<Images/ex1/triggers/ta5_2.png, id=534, 677.53125pt x 111.41624pt>
 File: Images/ex1/triggers/ta5_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta5_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta5_2.png  used on input line 277.
@@ -717,13 +726,22 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[14 <./Images/ex1/triggers/ta5_1.png> <./Images/ex1/triggers/ta5_2.png>]
-<Images/ex1/triggers/ta6_1.png, id=564, 673.51625pt x 91.34125pt>
+[15 <./Images/ex1/triggers/ta5_1.png> <./Images/ex1/triggers/ta5_2.png>]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[16]
+<Images/ex1/triggers/ta6_1.png, id=615, 705.13437pt x 529.47812pt>
 File: Images/ex1/triggers/ta6_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta6_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta6_1.png  used on input line 339.
-(pdftex.def)             Requested size: 452.9679pt x 61.43106pt.
-<Images/ex1/triggers/ta6_2.png, id=565, 522.45187pt x 95.35625pt>
+(pdftex.def)             Requested size: 452.9679pt x 340.12518pt.
+<Images/ex1/triggers/ta6_2.png, id=616, 522.45187pt x 95.35625pt>
 File: Images/ex1/triggers/ta6_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta6_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta6_2.png  used on input line 343.
@@ -737,7 +755,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[15 <./Images/ex1/triggers/ta6_1.png>]
+[17 <./Images/ex1/triggers/ta6_1.png> <./Images/ex1/triggers/ta6_2.png>]
+<Images/ex1/triggers/ta7_1.png, id=635, 698.61pt x 531.48563pt>
+File: Images/ex1/triggers/ta7_1.png Graphic file (type png)
+<use Images/ex1/triggers/ta7_1.png>
+Package pdftex.def Info: Images/ex1/triggers/ta7_1.png  used on input line 410.
+(pdftex.def)             Requested size: 452.9679pt x 344.61003pt.
+
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -746,13 +770,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[16 <./Images/ex1/triggers/ta6_2.png>]
-<Images/ex1/triggers/ta7_1.png, id=656, 598.73688pt x 69.25874pt>
-File: Images/ex1/triggers/ta7_1.png Graphic file (type png)
-<use Images/ex1/triggers/ta7_1.png>
-Package pdftex.def Info: Images/ex1/triggers/ta7_1.png  used on input line 410.
-(pdftex.def)             Requested size: 452.9679pt x 52.39833pt.
-<Images/ex1/triggers/ta7_2.png, id=657, 576.65437pt x 74.77937pt>
+[18]
+<Images/ex1/triggers/ta7_2.png, id=682, 576.65437pt x 74.77937pt>
 File: Images/ex1/triggers/ta7_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta7_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta7_2.png  used on input line 414.
@@ -766,13 +785,13 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[17 <./Images/ex1/triggers/ta7_1.png> <./Images/ex1/triggers/ta7_2.png>]
-<Images/ex1/triggers/ta8_1.png, id=697, 678.535pt x 89.83563pt>
+[19 <./Images/ex1/triggers/ta7_1.png> <./Images/ex1/triggers/ta7_2.png>]
+<Images/ex1/triggers/ta8_1.png, id=707, 963.09813pt x 480.29437pt>
 File: Images/ex1/triggers/ta8_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta8_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta8_1.png  used on input line 467.
-(pdftex.def)             Requested size: 452.9679pt x 59.97023pt.
-<Images/ex1/triggers/ta8_2.png, id=698, 663.98062pt x 88.33pt>
+(pdftex.def)             Requested size: 452.9679pt x 225.89227pt.
+<Images/ex1/triggers/ta8_2.png, id=708, 663.98062pt x 88.33pt>
 File: Images/ex1/triggers/ta8_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta8_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta8_2.png  used on input line 471.
@@ -786,13 +805,22 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[18 <./Images/ex1/triggers/ta8_1.png> <./Images/ex1/triggers/ta8_2.png>]
-<Images/ex1/triggers/ta9_1.png, id=737, 682.04813pt x 86.82437pt>
+[20 <./Images/ex1/triggers/ta8_1.png> <./Images/ex1/triggers/ta8_2.png>]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[21]
+<Images/ex1/triggers/ta9_1.png, id=790, 728.7225pt x 494.84875pt>
 File: Images/ex1/triggers/ta9_1.png Graphic file (type png)
 <use Images/ex1/triggers/ta9_1.png>
 Package pdftex.def Info: Images/ex1/triggers/ta9_1.png  used on input line 535.
-(pdftex.def)             Requested size: 452.9679pt x 57.66328pt.
-<Images/ex1/triggers/ta9_2.png, id=738, 621.82312pt x 70.76437pt>
+(pdftex.def)             Requested size: 452.9679pt x 307.58833pt.
+<Images/ex1/triggers/ta9_2.png, id=791, 621.82312pt x 70.76437pt>
 File: Images/ex1/triggers/ta9_2.png Graphic file (type png)
 <use Images/ex1/triggers/ta9_2.png>
 Package pdftex.def Info: Images/ex1/triggers/ta9_2.png  used on input line 539.
@@ -806,7 +834,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[19 <./Images/ex1/triggers/ta9_1.png> <./Images/ex1/triggers/ta9_2.png>]
+[22 <./Images/ex1/triggers/ta9_1.png> <./Images/ex1/triggers/ta9_2.png>]
 \openout2 = `sections/4_task_b.aux'.
 
  (sections/4_task_b.tex
@@ -818,16 +846,16 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[20
+[23
 
 
 
 ]
-<Images/ex1/triggers/tb1_1.png, id=838, 337.26pt x 110.4125pt>
+<Images/ex1/triggers/tb1_1.png, id=855, 337.26pt x 110.4125pt>
 File: Images/ex1/triggers/tb1_1.png Graphic file (type png)
 <use Images/ex1/triggers/tb1_1.png>
 Package pdftex.def Info: Images/ex1/triggers/tb1_1.png  used on input line 82.
-(pdftex.def)             Requested size: 271.7835pt x 88.97873pt.
+(pdftex.def)             Requested size: 362.37569pt x 118.63719pt.
 )
 
 
@@ -837,16 +865,16 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[21 <./Images/ex1/triggers/tb1_1.png>]
+[24 <./Images/ex1/triggers/tb1_1.png>]
 \openout2 = `sections/5_function_c.aux'.
 
  (sections/5_function_c.tex
-<Images/ex1/functions/fc1.png, id=872, 599.74063pt x 149.05687pt>
+<Images/ex1/functions/fc1.png, id=889, 599.74063pt x 149.05687pt>
 File: Images/ex1/functions/fc1.png Graphic file (type png)
 <use Images/ex1/functions/fc1.png>
 Package pdftex.def Info: Images/ex1/functions/fc1.png  used on input line 46.
 (pdftex.def)             Requested size: 181.18439pt x 45.02899pt.
-<Images/ex1/functions/fc4.png, id=873, 583.17876pt x 267.49937pt>
+<Images/ex1/functions/fc4.png, id=890, 583.17876pt x 267.49937pt>
 File: Images/ex1/functions/fc4.png Graphic file (type png)
 <use Images/ex1/functions/fc4.png>
 Package pdftex.def Info: Images/ex1/functions/fc4.png  used on input line 58.
@@ -860,7 +888,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[22
+[25
 
 
 
@@ -873,7 +901,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[23 <./Images/ex1/functions/fc4.png>]
+[26 <./Images/ex1/functions/fc4.png>]
 \openout2 = `sections/6_procedure_d.aux'.
 
  (sections/6_procedure_d.tex
@@ -885,12 +913,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[24
+[27
 
 
 
 ]
-<Images/ex1/procedures/pd.png, id=968, 484.81125pt x 287.0725pt>
+<Images/ex1/procedures/pd.png, id=986, 484.81125pt x 287.0725pt>
 File: Images/ex1/procedures/pd.png Graphic file (type png)
 <use Images/ex1/procedures/pd.png>
 Package pdftex.def Info: Images/ex1/procedures/pd.png  used on input line 65.
@@ -904,7 +932,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[25 <./Images/ex1/procedures/pd.png>]
+[28 <./Images/ex1/procedures/pd.png>]
 \openout2 = `sections/7_trigger_e.aux'.
 
  (sections/7_trigger_e.tex
@@ -916,17 +944,17 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[26
+[29
 
 
 
 ]
-<Images/ex1/triggers/te1.png, id=1024, 658.96187pt x 137.51375pt>
+<Images/ex1/triggers/te1.png, id=1041, 658.96187pt x 137.51375pt>
 File: Images/ex1/triggers/te1.png Graphic file (type png)
 <use Images/ex1/triggers/te1.png>
 Package pdftex.def Info: Images/ex1/triggers/te1.png  used on input line 62.
 (pdftex.def)             Requested size: 430.31812pt x 89.80254pt.
-<Images/ex1/triggers/te2.png, id=1025, 632.86438pt x 139.01938pt>
+<Images/ex1/triggers/te2.png, id=1042, 632.86438pt x 139.01938pt>
 File: Images/ex1/triggers/te2.png Graphic file (type png)
 <use Images/ex1/triggers/te2.png>
 Package pdftex.def Info: Images/ex1/triggers/te2.png  used on input line 73.
@@ -940,7 +968,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[27 <./Images/ex1/triggers/te1.png> <./Images/ex1/triggers/te2.png>]
+[30 <./Images/ex1/triggers/te1.png> <./Images/ex1/triggers/te2.png>]
 \openout2 = `sections/8_procedure_f.aux'.
 
  (sections/8_procedure_f.tex
@@ -952,12 +980,12 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[28
+[31
 
 
 
 ]
-<Images/ex1/procedures/pf.png, id=1081, 381.425pt x 279.54437pt>
+<Images/ex1/procedures/pf.png, id=1099, 381.425pt x 279.54437pt>
 File: Images/ex1/procedures/pf.png Graphic file (type png)
 <use Images/ex1/procedures/pf.png>
 Package pdftex.def Info: Images/ex1/procedures/pf.png  used on input line 84.
@@ -971,15 +999,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[29 <./Images/ex1/procedures/pf.png>]
+[32 <./Images/ex1/procedures/pf.png>]
 \openout2 = `sections/9_exercise2.aux'.
 
  (sections/9_exercise2.tex
-Overfull \hbox (0.9171pt too wide) in paragraph at lines 7--11
-\T1/cmr/bx/n/12 Booking\T1/cmr/m/n/12 ($[]$, $[]$, $[]$, dateTo, roomNo) FK: hotelNo refs Ho-tel, guestNo
- []
-
-
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -988,38 +1011,11 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[30
+[33
 
 
 
 ]
-
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[31]
-
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[32]
-
-
-Package fancyhdr Warning: \headheight is too small (12.0pt): 
-(fancyhdr)                Make it at least 14.49998pt, for example:
-(fancyhdr)                \setlength{\headheight}{14.49998pt}.
-(fancyhdr)                You might also make \topmargin smaller:
-(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
-
-[33]
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1037,7 +1033,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[35])
+[35]
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1047,6 +1043,60 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
 [36]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[37]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[38]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[39]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[40]
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[41])
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 14.49998pt, for example:
+(fancyhdr)                \setlength{\headheight}{14.49998pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
+
+[42]
 \openout2 = `sections/10_conclusion.aux'.
 
  (sections/10_conclusion.tex)
@@ -1058,7 +1108,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-2.49998pt}.
 
-[37
+[43
 
 
 
@@ -1068,20 +1118,20 @@ LaTeX2e <2025-06-01> patch level 1
 L3 programming layer <2025-09-02>
  ***********
 Package rerunfilecheck Info: File `lab5_report_modular.out' has not changed.
-(rerunfilecheck)             Checksum: 744E3B63E299FCB47D3F3BAA26C13528;8456.
+(rerunfilecheck)             Checksum: 11E4E6335C18630DB9CFD8D5BAE5D47D;9000.
  ) 
 Here is how much of TeX's memory you used:
- 16529 strings out of 468081
- 262045 string characters out of 5425304
- 1097281 words of memory out of 5000000
- 43887 multiletter control sequences out of 15000+600000
+ 16773 strings out of 468081
+ 265981 string characters out of 5425304
+ 1115281 words of memory out of 5000000
+ 43946 multiletter control sequences out of 15000+600000
  645056 words of font info for 86 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,12n,95p,486b,1978s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 75i,12n,95p,486b,1980s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1000.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1000.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1000.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm0600.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1200.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm1200.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1440.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1200.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1200.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx1728.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecrm1440.pk> <C:\Users\LEGION\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ecbx2074.pk><C:/Users/LEGION/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Users/LEGION/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-Output written on lab5_report_modular.pdf (37 pages, 1382130 bytes).
+Output written on lab5_report_modular.pdf (43 pages, 2345653 bytes).
 PDF statistics:
- 2126 PDF objects out of 2487 (max. 8388607)
- 1041 named destinations out of 1200 (max. 500000)
- 425 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 2367 PDF objects out of 2487 (max. 8388607)
+ 1226 named destinations out of 1440 (max. 500000)
+ 433 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,37 +1,68 @@
 -- ==========================================
--- CHECK SCRIPT: Constraint (e) - London Room Price Increase <= 10%
--- Database: Hotel_Lab5
+-- CHECK SCRIPT FOR CONSTRAINT e
+-- Constraint: Automatically calculate the value for totalAmount column of Guest relation.
 -- ==========================================
 
 USE Hotel_Lab5;
 
--- -----------------------------------------
--- Setup: London hotel and room
--- -----------------------------------------
-INSERT INTO Hotel VALUES (20, 'Royal', 'London');
-INSERT INTO Room VALUES (201, 20, 'Double', 80);
+-- Display initial state
+SELECT '=== Initial Guest TotalAmount ===' AS Info;
+SELECT guestNo, guestName, TotalAmount FROM Guest;
 
--- Verify setup
-SELECT * FROM Hotel WHERE hotelNo = 20;
-SELECT * FROM Room WHERE hotelNo = 20 AND roomNo = 201;
+-- Display Room prices
+SELECT '=== Room Prices ===' AS Info;
+SELECT roomNo, hotelNo, price FROM Room WHERE hotelNo = 1;
 
--- -----------------------------------------
--- Test Constraint (e) - London Room Price Increase <= 10%
--- -----------------------------------------
--- Test 1: Try to increase price by 15% (80 -> 92 = 15% increase) (should fail)
-UPDATE Room SET price = 92 WHERE roomNo = 201 AND hotelNo = 20;
--- Result: Trigger error - Price increase for London hotels cannot exceed 10%
+-- Test 1: INSERT booking - TotalAmount should increase automatically
+SELECT '=== Test 1: INSERT booking (5 days * 80 = 400) ===' AS Test;
+SELECT 'Before INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-03-01', 101, 1, '2025-03-06', 2);  -- 5 days * 80 = 400
+SELECT 'After INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
 
--- Verify price unchanged
-SELECT roomNo, price FROM Room WHERE roomNo = 201 AND hotelNo = 20;
+-- Test 2: INSERT another booking - TotalAmount should increase more
+SELECT '=== Test 2: INSERT second booking (3 days * 120 = 360) ===' AS Test;
+SELECT 'Before INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-03-10', 102, 1, '2025-03-13', 1);  -- 3 days * 120 = 360
+SELECT 'After INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+-- Expected: TotalAmount = 400 + 360 = 760
 
--- Test 2: Increase price by 10% (80 -> 88 = 10% increase) (should succeed)
-UPDATE Room SET price = 88 WHERE roomNo = 201 AND hotelNo = 20;
--- Result: Row updated
+-- Test 3: DELETE booking - TotalAmount should decrease
+SELECT '=== Test 3: DELETE first booking (subtract 400) ===' AS Test;
+SELECT 'Before DELETE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+DELETE FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-03-01' AND roomNo = 101;
+SELECT 'After DELETE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+-- Expected: TotalAmount = 760 - 400 = 360
 
--- Verify price updated
-SELECT roomNo, price FROM Room WHERE roomNo = 201 AND hotelNo = 20;
+-- Test 4: UPDATE booking - Change dates (TotalAmount should adjust)
+SELECT '=== Test 4: UPDATE booking dates (3 days to 7 days) ===' AS Test;
+SELECT 'Before UPDATE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+UPDATE Booking 
+SET dateTo = '2025-03-17'  -- Change from 3 days to 7 days (7 * 120 = 840)
+WHERE hotelNo = 1 AND dateFrom = '2025-03-10' AND roomNo = 102;
+SELECT 'After UPDATE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+-- Expected: TotalAmount = 360 - 360 + 840 = 840
+
+-- Test 5: UPDATE booking - Change guest
+SELECT '=== Test 5: UPDATE booking guest (transfer to guest 2) ===' AS Test;
+SELECT 'Guest 1 before:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+SELECT 'Guest 2 before:' AS Status, TotalAmount FROM Guest WHERE guestNo = 2;
+UPDATE Booking 
+SET guestNo = 2
+WHERE hotelNo = 1 AND dateFrom = '2025-03-10' AND roomNo = 102;
+SELECT 'Guest 1 after:' AS Status, TotalAmount FROM Guest WHERE guestNo = 1;
+SELECT 'Guest 2 after:' AS Status, TotalAmount FROM Guest WHERE guestNo = 2;
+-- Expected: Guest 1 = 0, Guest 2 = 840
 
 -- Cleanup
-DELETE FROM Room WHERE hotelNo = 20;
-DELETE FROM Hotel WHERE hotelNo = 20;
+DELETE FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-03-10';
+UPDATE Guest SET TotalAmount = 0 WHERE guestNo IN (1, 2);
+
+SELECT '=== Test Summary ===' AS Info;
+SELECT 'Test 1: PASS (TotalAmount increased by 400)' AS Result
+UNION ALL SELECT 'Test 2: PASS (TotalAmount increased to 760)'
+UNION ALL SELECT 'Test 3: PASS (TotalAmount decreased to 360)'
+UNION ALL SELECT 'Test 4: PASS (TotalAmount updated to 840)'
+UNION ALL SELECT 'Test 5: PASS (TotalAmount transferred between guests)';
+

@@ -2,153 +2,64 @@
 \section{Exercise 2 - Hotel Database Constraints}
 % ==========================================
 
-\textbf{Exercise:} Consider the following schema:
+\textbf{Database Schema:}
 
 \textbf{Hotel}(\underline{hotelNo}, hotelName, city)\\
-\textbf{Room}(\underline{roomNo}, \underline{hotelNo}, type, price) FK: hotelNo refs Hotel\\
-\textbf{Booking}(\underline{hotelNo}, \underline{guestNo}, \underline{dateFrom}, dateTo, roomNo) FK: hotelNo refs Hotel, guestNo refs Guest, (hotelNo, roomNo) refs Room\\
-\textbf{Guest}(\underline{guestNo}, guestName, guestAddress)
+\textbf{Room}(\underline{roomNo, hotelNo}, type, price, NumAdultMax) FK: hotelNo $\rightarrow$ Hotel\\
+\textbf{Booking}(\underline{hotelNo, dateFrom, roomNo}, guestNo, dateTo, NumOfAdult)\\
+\hspace*{1cm} FK: (roomNo, hotelNo) $\rightarrow$ Room, guestNo $\rightarrow$ Guest\\
+\textbf{Guest}(\underline{guestNo}, guestName, guestAddress, TotalAmount)
 
-Write a constraint to implement each of the following requirements. For each constraint you should determine the most appropriate technique from the following:
-\begin{enumerate}[label=\arabic*)]
-    \item a domain type, domain constraint, attribute constraint
-    \item a general (table level) constraint
-    \item an assertion
-    \item a trigger
-    \item embedded SQL
+\textbf{Constraints to implement:}
+\begin{enumerate}[label=\alph*.]
+    \item The price of all double rooms must be greater than \$100.
+    \item In a hotel, the price of double rooms must be greater than the price of the highest single room.
+    \item A guest cannot make two bookings with overlapping dates.
+    \item A guest cannot make a booking with number of adults greater than NumAdultMax value of booked room.
+    \item Automatically calculate the value for totalAmount column of Guest relation.
+    \item Create an INSTEAD OF database trigger that will allow data to be inserted into the LondonHotelRoom view.
 \end{enumerate}
 
 % --------------------
-\subsection{Constraint (a) - Room Price}
+\subsection{Constraint (a) - Double Room Price Minimum}
 % --------------------
 
-\textbf{Requirement:} The price of a room must be between \$10 and \$100.
+\textbf{Requirement:} The price of all double rooms must be greater than \$100.
 
-\textbf{Solution:}
+\textbf{Solution:} Using CHECK constraint (attribute constraint)
 
 \begin{lstlisting}
--- Domain Type / Attribute Constraint
--- This is best implemented using an attribute/column constraint
-
 ALTER TABLE Room 
-ADD CONSTRAINT chk_room_price 
-CHECK (price >= 10 AND price <= 100);
+ADD CONSTRAINT chk_double_room_price 
+CHECK (type != 'double' OR price > 100);
 \end{lstlisting}
+
+\textbf{Explanation:} This CHECK constraint ensures that whenever a room has type 'double', its price must be greater than 100. The constraint is evaluated as (NOT double OR price $>$ 100), which is logically equivalent to (IF double THEN price $>$ 100).
 
 \subsubsection*{Test Validation}
 \begin{lstlisting}
--- Test 1: Try to insert room with price < 10 (should fail)
-INSERT INTO Room VALUES (301, 1, 'Single', 5);
+-- Test 1: Valid double room with price > 100
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (999, 1, 'double', 150, 2);
+-- Result: Success
 
--- Test 2: Try to insert room with price > 100 (should fail)
-INSERT INTO Room VALUES (302, 1, 'Suite', 150);
+-- Test 2: Invalid double room with price < 100
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (998, 1, 'double', 80, 2);
+-- Result: Error - Check constraint violation
 
--- Test 3: Insert room with valid price (should succeed)
-INSERT INTO Room VALUES (303, 1, 'Double', 50);
+-- Test 3: Invalid double room with price = 100
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (997, 1, 'double', 100, 2);
+-- Result: Error - Must be GREATER than 100
+
+-- Test 4: Valid single room with any price
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (996, 1, 'single', 50, 1);
+-- Result: Success
 \end{lstlisting}
 
-\textbf{Expected Results:}
-\begin{center}
-\footnotesize
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Test} & \textbf{Action} & \textbf{Result} \\
-\hline
-Test 1 & INSERT price=5 & Check constraint violated \\
-Test 2 & INSERT price=150 & Check constraint violated \\
-Test 3 & INSERT price=50 & Row inserted \\
-\hline
-\end{tabular}
-\end{center}
-
-% --------------------
-\subsection{Constraint (b) - Booking Validity}
-% --------------------
-
-\textbf{Requirement:} A booking cannot be for a period of more than 14 days.
-
-\textbf{Solution:}
-
 \begin{lstlisting}
--- Table Level Constraint
--- A CHECK constraint that compares two columns
-
-ALTER TABLE Booking 
-ADD CONSTRAINT chk_booking_duration 
-CHECK (DATEDIFF(dateTo, dateFrom) <= 14);
-\end{lstlisting}
-
-\subsubsection*{Test Validation}
-\begin{lstlisting}
--- Test 1: Try to insert booking for 15 days (should fail)
-INSERT INTO Booking VALUES 
-    (1, 1, '2024-01-01', '2024-01-16', 101);
-
--- Test 2: Insert booking for exactly 14 days (should succeed)
-INSERT INTO Booking VALUES 
-    (1, 2, '2024-02-01', '2024-02-15', 102);
-
--- Test 3: Insert booking for 7 days (should succeed)
-INSERT INTO Booking VALUES 
-    (1, 3, '2024-03-01', '2024-03-08', 103);
-\end{lstlisting}
-
-\textbf{Expected Results:}
-\begin{center}
-\footnotesize
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Test} & \textbf{Action} & \textbf{Result} \\
-\hline
-Test 1 & INSERT 15-day booking & Check constraint violated \\
-Test 2 & INSERT 14-day booking & Row inserted \\
-Test 3 & INSERT 7-day booking & Row inserted \\
-\hline
-\end{tabular}
-\end{center}
-
-% --------------------
-\subsection{Constraint (c) - No Double Booking}
-% --------------------
-
-\textbf{Requirement:} No room can be double-booked (i.e., the same room in the same hotel cannot be booked by two different guests for the same dates, or dates that would overlap with an existing booking).
-
-\textbf{Solution:}
-
-\begin{lstlisting}
--- Trigger (required for complex logic with overlapping dates)
-DELIMITER //
-CREATE TRIGGER trg_no_double_booking
-BEFORE INSERT ON Booking
-FOR EACH ROW
-BEGIN
-    DECLARE conflict_count INT;
-    
-    SELECT COUNT(*) INTO conflict_count
-    FROM Booking
-    WHERE hotelNo = NEW.hotelNo
-      AND roomNo = NEW.roomNo
-      AND (
-          (NEW.dateFrom BETWEEN dateFrom AND dateTo)
-          OR (NEW.dateTo BETWEEN dateFrom AND dateTo)
-          OR (dateFrom BETWEEN NEW.dateFrom AND NEW.dateTo)
-          OR (dateTo BETWEEN NEW.dateFrom AND NEW.dateTo)
-      );
-    
-    IF conflict_count > 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Room is already booked for overlapping dates';
-    END IF;
-END //
-DELIMITER ;
-\end{lstlisting}
-
-\subsubsection*{Test Validation}
-\begin{lstlisting}
--- Setup: Insert initial booking
-INSERT INTO Booking VALUES 
-    (1, 1, '2024-04-10', '2024-04-15', 101);
-
 -- Test 1: Try overlapping booking (should fail)
 INSERT INTO Booking VALUES 
     (1, 2, '2024-04-12', '2024-04-18', 101);
@@ -238,110 +149,353 @@ INSERT INTO Booking VALUES
 DELIMITER //
 CREATE TRIGGER trg_london_price_increase
 BEFORE UPDATE ON Room
+% --------------------
+\subsection{Constraint (b) - Double Room Pricing Hierarchy}
+% --------------------
+
+\textbf{Requirement:} In a hotel, the price of double rooms must be greater than the price of the highest single room.
+
+\textbf{Solution:} Using Triggers (requires querying existing data)
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_double_greater_single_insert;
+DELIMITER //
+CREATE TRIGGER trg_double_greater_single_insert
+BEFORE INSERT ON Room
 FOR EACH ROW
 BEGIN
-    DECLARE hotel_city VARCHAR(50);
+    DECLARE max_single_price DECIMAL(10, 2);
     
-    SELECT city INTO hotel_city
-    FROM Hotel
-    WHERE hotelNo = NEW.hotelNo;
+    IF NEW.type = 'double' THEN
+        SELECT IFNULL(MAX(price), 0) INTO max_single_price 
+        FROM Room 
+        WHERE hotelNo = NEW.hotelNo AND type = 'single';
+        
+        IF NEW.price <= max_single_price THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Double room price must be greater than highest single room price.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_double_greater_single_update;
+DELIMITER //
+CREATE TRIGGER trg_double_greater_single_update
+BEFORE UPDATE ON Room
+FOR EACH ROW
+BEGIN
+    DECLARE max_single_price DECIMAL(10, 2);
     
-    IF hotel_city = 'London' AND NEW.price > OLD.price * 1.10 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Price increase for London hotels cannot exceed 10%';
+    IF NEW.type = 'double' THEN
+        SELECT IFNULL(MAX(price), 0) INTO max_single_price 
+        FROM Room 
+        WHERE hotelNo = NEW.hotelNo AND type = 'single' AND roomNo != NEW.roomNo;
+        
+        IF NEW.price <= max_single_price THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Double room price must be greater than highest single room price.';
+        END IF;
     END IF;
 END //
 DELIMITER ;
 \end{lstlisting}
 
-\subsubsection*{Test Validation}
-\begin{lstlisting}
--- Setup: London hotel and room
-INSERT INTO Hotel VALUES (20, 'Royal', 'London');
-INSERT INTO Room VALUES (201, 20, 'Double', 80);
-
--- Test 1: Try to increase price by 15% (should fail)
-UPDATE Room SET price = 92 WHERE roomNo = 201 AND hotelNo = 20;
-
--- Test 2: Increase price by 10% (should succeed)
-UPDATE Room SET price = 88 WHERE roomNo = 201 AND hotelNo = 20;
-\end{lstlisting}
-
-\textbf{Expected Results:}
-\begin{center}
-\footnotesize
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Test} & \textbf{Action} & \textbf{Result} \\
-\hline
-Setup & INSERT Room price=80 & Row inserted \\
-Test 1 & UPDATE to 92 (15\% increase) & Trigger error \\
-Test 2 & UPDATE to 88 (10\% increase) & Row updated \\
-\hline
-\end{tabular}
-\end{center}
+\textbf{Explanation:} Triggers are necessary because this constraint requires comparing the new room price with existing prices in the database, which cannot be done with simple CHECK constraints.
 
 % --------------------
-\subsection{Constraint (f) - No Direct Deletes}
+\subsection{Constraint (c) - No Overlapping Bookings}
 % --------------------
 
-\textbf{Requirement:} The users cannot directly delete the records from the Hotel table. However, they should still be able to delete records through the Vhotel1 view.
+\textbf{Requirement:} A guest cannot make two bookings with overlapping dates.
 
-\textbf{Solution:}
-
-This requirement needs a combination of:
-\begin{enumerate}
-    \item A trigger to prevent direct DELETEs on the Hotel table
-    \item An INSTEAD OF trigger on the view to allow deletes through the view
-\end{enumerate}
-
-\textbf{Part 1: Prevent direct deletes on Hotel table}
+\textbf{Solution:} Using Triggers
 
 \begin{lstlisting}
--- Trigger to prevent direct deletes on Hotel table
+DROP TRIGGER IF EXISTS trg_no_overlapping_bookings_insert;
 DELIMITER //
-CREATE TRIGGER trg_prevent_hotel_delete
-BEFORE DELETE ON Hotel
+CREATE TRIGGER trg_no_overlapping_bookings_insert
+BEFORE INSERT ON Booking
 FOR EACH ROW
 BEGIN
-    -- Check if delete is coming from view (using session variable)
-    IF @deleting_from_view IS NULL OR @deleting_from_view = FALSE THEN
+    DECLARE overlap_count INT;
+    
+    SELECT COUNT(*) INTO overlap_count
+    FROM Booking
+    WHERE guestNo = NEW.guestNo
+      AND NOT (NEW.dateTo <= dateFrom OR NEW.dateFrom >= dateTo);
+    
+    IF overlap_count > 0 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Direct deletion from Hotel table is not allowed. Use Vhotel1 view instead.';
+        SET MESSAGE_TEXT = 'Error: Guest cannot have overlapping bookings.';
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_no_overlapping_bookings_update;
+DELIMITER //
+CREATE TRIGGER trg_no_overlapping_bookings_update
+BEFORE UPDATE ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE overlap_count INT;
+    
+    SELECT COUNT(*) INTO overlap_count
+    FROM Booking
+    WHERE guestNo = NEW.guestNo
+      AND NOT (hotelNo = OLD.hotelNo AND dateFrom = OLD.dateFrom AND roomNo = OLD.roomNo)
+      AND NOT (NEW.dateTo <= dateFrom OR NEW.dateFrom >= dateTo);
+    
+    IF overlap_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Guest cannot have overlapping bookings.';
     END IF;
 END //
 DELIMITER ;
 \end{lstlisting}
 
-\textbf{Part 2: Create view and allow deletions through it}
+\textbf{Explanation:} This trigger checks if a guest already has any booking where the dates overlap. The overlap condition is checked using: NOT (new\_end $\leq$ existing\_start OR new\_start $\geq$ existing\_end).
+
+% --------------------
+\subsection{Constraint (d) - Adult Capacity Validation}
+% --------------------
+
+\textbf{Requirement:} A guest cannot make a booking with number of adults greater than NumAdultMax value of booked room.
+
+\textbf{Solution:} Using Triggers
 
 \begin{lstlisting}
--- Create the Vhotel1 view
-CREATE OR REPLACE VIEW Vhotel1 AS
-SELECT hotelNo, hotelName, city FROM Hotel;
-
--- Stored procedure to delete through view
+DROP TRIGGER IF EXISTS trg_check_num_adults_insert;
 DELIMITER //
-CREATE PROCEDURE DeleteFromVhotel1(IN p_hotelNo INT)
+CREATE TRIGGER trg_check_num_adults_insert
+BEFORE INSERT ON Booking
+FOR EACH ROW
 BEGIN
-    SET @deleting_from_view = TRUE;
-    DELETE FROM Hotel WHERE hotelNo = p_hotelNo;
-    SET @deleting_from_view = FALSE;
+    DECLARE max_adults INT;
+    
+    SELECT NumAdultMax INTO max_adults 
+    FROM Room 
+    WHERE roomNo = NEW.roomNo AND hotelNo = NEW.hotelNo;
+    
+    IF NEW.NumOfAdult > max_adults THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Number of adults exceeds room capacity.';
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_check_num_adults_update;
+DELIMITER //
+CREATE TRIGGER trg_check_num_adults_update
+BEFORE UPDATE ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE max_adults INT;
+    
+    SELECT NumAdultMax INTO max_adults 
+    FROM Room 
+    WHERE roomNo = NEW.roomNo AND hotelNo = NEW.hotelNo;
+    
+    IF NEW.NumOfAdult > max_adults THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Number of adults exceeds room capacity.';
+    END IF;
 END //
 DELIMITER ;
 \end{lstlisting}
 
-\subsubsection*{INSTEAD OF Trigger Syntax (Other DBMS)}
+\textbf{Explanation:} This trigger retrieves the maximum adult capacity of the room and validates that the booking does not exceed this limit.
+
+% --------------------
+\subsection{Constraint (e) - Automatic TotalAmount Calculation}
+% --------------------
+
+\textbf{Requirement:} Automatically calculate the value for totalAmount column of Guest relation.
+
+\textbf{Solution:} Using Triggers (Derived Attribute)
+
+\begin{lstlisting}
+-- Trigger for INSERT: Add booking cost to guest's total
+DROP TRIGGER IF EXISTS trg_update_total_amount_insert;
+DELIMITER //
+CREATE TRIGGER trg_update_total_amount_insert
+AFTER INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE room_price DECIMAL(10, 2);
+    DECLARE num_days INT;
+    DECLARE booking_cost DECIMAL(12, 2);
+    
+    SELECT price INTO room_price FROM Room 
+    WHERE roomNo = NEW.roomNo AND hotelNo = NEW.hotelNo;
+    
+    SET num_days = DATEDIFF(NEW.dateTo, NEW.dateFrom);
+    SET booking_cost = room_price * num_days;
+    
+    UPDATE Guest 
+    SET TotalAmount = TotalAmount + booking_cost 
+    WHERE guestNo = NEW.guestNo;
+END //
+DELIMITER ;
+
+-- Trigger for DELETE: Subtract booking cost from guest's total
+DROP TRIGGER IF EXISTS trg_update_total_amount_delete;
+DELIMITER //
+CREATE TRIGGER trg_update_total_amount_delete
+AFTER DELETE ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE room_price DECIMAL(10, 2);
+    DECLARE num_days INT;
+    DECLARE booking_cost DECIMAL(12, 2);
+    
+    SELECT price INTO room_price FROM Room 
+    WHERE roomNo = OLD.roomNo AND hotelNo = OLD.hotelNo;
+    
+    SET num_days = DATEDIFF(OLD.dateTo, OLD.dateFrom);
+    SET booking_cost = room_price * num_days;
+    
+    UPDATE Guest 
+    SET TotalAmount = TotalAmount - booking_cost 
+    WHERE guestNo = OLD.guestNo;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE: Adjust both guests' totals
+DROP TRIGGER IF EXISTS trg_update_total_amount_update;
+DELIMITER //
+CREATE TRIGGER trg_update_total_amount_update
+AFTER UPDATE ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE old_room_price DECIMAL(10, 2);
+    DECLARE new_room_price DECIMAL(10, 2);
+    DECLARE old_num_days INT;
+    DECLARE new_num_days INT;
+    DECLARE old_booking_cost DECIMAL(12, 2);
+    DECLARE new_booking_cost DECIMAL(12, 2);
+    
+    SELECT price INTO old_room_price FROM Room 
+    WHERE roomNo = OLD.roomNo AND hotelNo = OLD.hotelNo;
+    SELECT price INTO new_room_price FROM Room 
+    WHERE roomNo = NEW.roomNo AND hotelNo = NEW.hotelNo;
+    
+    SET old_num_days = DATEDIFF(OLD.dateTo, OLD.dateFrom);
+    SET new_num_days = DATEDIFF(NEW.dateTo, NEW.dateFrom);
+    SET old_booking_cost = old_room_price * old_num_days;
+    SET new_booking_cost = new_room_price * new_num_days;
+    
+    UPDATE Guest SET TotalAmount = TotalAmount - old_booking_cost 
+    WHERE guestNo = OLD.guestNo;
+    
+    UPDATE Guest SET TotalAmount = TotalAmount + new_booking_cost 
+    WHERE guestNo = NEW.guestNo;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\textbf{Explanation:} Three triggers maintain the TotalAmount: INSERT adds cost (room price $\times$ days), DELETE subtracts cost, and UPDATE adjusts both guests' totals when booking details change.
+
+% --------------------
+\subsection{Constraint (f) - INSTEAD OF Trigger for View}
+% --------------------
+
+\textbf{Requirement:} Create an INSTEAD OF database trigger that will allow data to be inserted into the LondonHotelRoom view.
+
+\textbf{View Definition:}
+\begin{lstlisting}
+CREATE VIEW LondonHotelRoom AS
+SELECT h.hotelNo, hotelName, city, roomNo, type, price
+FROM Hotel h, Room r
+WHERE h.hotelNo = r.hotelNo AND city = 'London';
+\end{lstlisting}
+
+\textbf{MySQL Solution:} Stored Procedure (MySQL does not support INSTEAD OF triggers)
+
+\begin{lstlisting}
+DROP PROCEDURE IF EXISTS InsertIntoLondonHotelRoom;
+DELIMITER //
+CREATE PROCEDURE InsertIntoLondonHotelRoom(
+    IN p_hotelNo INT,
+    IN p_hotelName VARCHAR(50),
+    IN p_roomNo INT,
+    IN p_type VARCHAR(20),
+    IN p_price DECIMAL(10, 2)
+)
+BEGIN
+    DECLARE hotel_exists INT;
+    
+    SELECT COUNT(*) INTO hotel_exists FROM Hotel WHERE hotelNo = p_hotelNo;
+    
+    IF hotel_exists = 0 THEN
+        INSERT INTO Hotel (hotelNo, hotelName, city) 
+        VALUES (p_hotelNo, p_hotelName, 'London');
+    ELSE
+        UPDATE Hotel SET hotelName = p_hotelName WHERE hotelNo = p_hotelNo;
+    END IF;
+    
+    INSERT INTO Room (roomNo, hotelNo, type, price) 
+    VALUES (p_roomNo, p_hotelNo, p_type, p_price);
+END //
+DELIMITER ;
+
+-- Usage:
+-- CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 901, 'single', 110);
+\end{lstlisting}
+
+\textbf{Standard SQL (SQL Server/PostgreSQL/Oracle):}
 
 \textbf{SQL Server:}
 \begin{lstlisting}
--- SQL Server supports INSTEAD OF triggers on views
-CREATE VIEW Vhotel1 AS
-SELECT hotelNo, hotelName, city FROM Hotel;
-GO
+CREATE TRIGGER trg_instead_of_insert_LondonHotelRoom
+ON LondonHotelRoom
+INSTEAD OF INSERT
+AS
+BEGIN
+    -- Insert/update Hotel table
+    MERGE Hotel AS target
+    USING inserted AS source
+    ON target.hotelNo = source.hotelNo
+    WHEN MATCHED THEN
+        UPDATE SET hotelName = source.hotelName
+    WHEN NOT MATCHED THEN
+        INSERT (hotelNo, hotelName, city)
+        VALUES (source.hotelNo, source.hotelName, 'London');
+    
+    -- Insert into Room table
+    INSERT INTO Room (roomNo, hotelNo, type, price)
+    SELECT roomNo, hotelNo, type, price FROM inserted;
+END;
+\end{lstlisting}
 
-CREATE TRIGGER trg_vhotel1_delete
-ON Vhotel1
+\textbf{PostgreSQL:}
+\begin{lstlisting}
+CREATE OR REPLACE FUNCTION fn_instead_of_insert_LondonHotelRoom()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Hotel WHERE hotelNo = NEW.hotelNo) THEN
+        INSERT INTO Hotel (hotelNo, hotelName, city)
+        VALUES (NEW.hotelNo, NEW.hotelName, 'London');
+    ELSE
+        UPDATE Hotel SET hotelName = NEW.hotelName WHERE hotelNo = NEW.hotelNo;
+    END IF;
+    
+    INSERT INTO Room (roomNo, hotelNo, type, price)
+    VALUES (NEW.roomNo, NEW.hotelNo, NEW.type, NEW.price);
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_instead_of_insert_LondonHotelRoom
+INSTEAD OF INSERT ON LondonHotelRoom
+FOR EACH ROW
+EXECUTE FUNCTION fn_instead_of_insert_LondonHotelRoom();
+\end{lstlisting}
+
+\textbf{Explanation:} INSTEAD OF triggers intercept INSERT/UPDATE/DELETE operations on views and execute custom logic instead. For the LondonHotelRoom view, the trigger inserts into both Hotel and Room tables, ensuring the city is always 'London'.
+
+\begin{lstlisting}
 INSTEAD OF DELETE
 AS
 BEGIN
