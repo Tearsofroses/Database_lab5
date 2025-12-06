@@ -1,0 +1,94 @@
+% ==========================================
+\section{Task (b) - Num\_of\_Emp Derived Attribute}
+% ==========================================
+
+\textbf{Exercise:} Alter table Department to add the attribute Num\_of\_Emp that stores the number of employees working for each department. This attribute is a derived attribute from Employee.DNO and its value must be automatically calculated.
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Add the column
+ALTER TABLE DEPARTMENT ADD COLUMN Num_of_Emp INT DEFAULT 0;
+
+-- Initialize the column with current counts
+UPDATE DEPARTMENT d
+SET Num_of_Emp = (SELECT COUNT(*) FROM EMPLOYEE e WHERE e.Dno = d.Dnumber);
+
+-- Trigger for INSERT
+DROP TRIGGER IF EXISTS trg_update_num_emp_insert;
+DELIMITER //
+CREATE TRIGGER trg_update_num_emp_insert
+AFTER INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Dno IS NOT NULL THEN
+        UPDATE DEPARTMENT 
+        SET Num_of_Emp = Num_of_Emp + 1 
+        WHERE Dnumber = NEW.Dno;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for DELETE
+DROP TRIGGER IF EXISTS trg_update_num_emp_delete;
+DELIMITER //
+CREATE TRIGGER trg_update_num_emp_delete
+AFTER DELETE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF OLD.Dno IS NOT NULL THEN
+        UPDATE DEPARTMENT 
+        SET Num_of_Emp = Num_of_Emp - 1 
+        WHERE Dnumber = OLD.Dno;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE
+DROP TRIGGER IF EXISTS trg_update_num_emp_update;
+DELIMITER //
+CREATE TRIGGER trg_update_num_emp_update
+AFTER UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF OLD.Dno IS NOT NULL AND (NEW.Dno IS NULL OR OLD.Dno != NEW.Dno) THEN
+        UPDATE DEPARTMENT SET Num_of_Emp = Num_of_Emp - 1 WHERE Dnumber = OLD.Dno;
+    END IF;
+    IF NEW.Dno IS NOT NULL AND (OLD.Dno IS NULL OR OLD.Dno != NEW.Dno) THEN
+        UPDATE DEPARTMENT SET Num_of_Emp = Num_of_Emp + 1 WHERE Dnumber = NEW.Dno;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Check current department counts
+SELECT Dnumber, Dname, Num_of_Emp FROM DEPARTMENT;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|c|l|c|}
+\hline
+\textbf{Dnumber} & \textbf{Dname} & \textbf{Num\_of\_Emp} \\
+\hline
+1 & Headquarters & 1 \\
+4 & Administration & 2 \\
+5 & Research & 5 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+-- Test INSERT: Add new employee to Dept 5
+INSERT INTO EMPLOYEE VALUES ('New', 'N', 'Emp', '999999999', '1990-01-01', 
+                             '123 St', 'M', 25000, '333445555', 5);
+SELECT Dnumber, Num_of_Emp FROM DEPARTMENT WHERE Dnumber = 5;
+-- Result: Num_of_Emp = 6 (incremented from 5)
+
+-- Test DELETE: Remove the employee
+DELETE FROM EMPLOYEE WHERE Ssn = '999999999';
+SELECT Dnumber, Num_of_Emp FROM DEPARTMENT WHERE Dnumber = 5;
+-- Result: Num_of_Emp = 5 (decremented back)
+\end{lstlisting}

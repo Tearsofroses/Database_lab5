@@ -1,0 +1,273 @@
+% ==========================================
+\section{Views}
+% ==========================================
+
+\textbf{Exercise:} Specify the following views in SQL on the COMPANY database schema:
+\begin{enumerate}[label=\alph*.]
+    \item A view that has the department name, manager name, and manager salary for every department.
+    \item A view that has the employee name, supervisor name, and employee salary for each employee who works in the 'Research' department.
+    \item A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project.
+    \item A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project with more than two employees working on it.
+    \item A view (SSN, Full Name of employee, Number of dependents) that includes information about employees who have the number of dependents greater than 2.
+    \item A view (Full Name of employee, date of birth, gender) for those employees who have their birthdate in July.
+    \item A view (Name of dependent, SSN of employee, date of birth of dependent) that includes information on all dependents who are less than 18 years old.
+\end{enumerate}
+
+\subsection{View (a): Department Manager Information}
+
+\textbf{Requirement:} A view that has the department name, manager name, and manager salary for every department.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS DepartmentManagerInfo;
+CREATE VIEW DepartmentManagerInfo AS
+SELECT 
+    d.Dname AS Department_Name,
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Manager_Name,
+    e.Salary AS Manager_Salary
+FROM DEPARTMENT d
+JOIN EMPLOYEE e ON d.Mgr_ssn = e.Ssn;
+\end{lstlisting}
+
+\textbf{Explanation:} This view joins the DEPARTMENT and EMPLOYEE tables using the manager's SSN to retrieve the department name, manager's full name (concatenated), and the manager's salary.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM DepartmentManagerInfo;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|l|l|r|}
+\hline
+\textbf{Department\_Name} & \textbf{Manager\_Name} & \textbf{Manager\_Salary} \\
+\hline
+Research & Franklin T Wong & 40000.00 \\
+Administration & Jennifer S Wallace & 43000.00 \\
+Headquarters & James E Borg & 55000.00 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{View (b): Research Department Employees and Supervisors}
+
+\textbf{Requirement:} A view that has the employee name, supervisor name, and employee salary for each employee who works in the 'Research' department.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS ResearchEmployeeSupervisor;
+CREATE VIEW ResearchEmployeeSupervisor AS
+SELECT 
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Employee_Name,
+    CONCAT(s.Fname, ' ', s.Minit, ' ', s.Lname) AS Supervisor_Name,
+    e.Salary AS Employee_Salary
+FROM EMPLOYEE e
+LEFT JOIN EMPLOYEE s ON e.Super_ssn = s.Ssn
+JOIN DEPARTMENT d ON e.Dno = d.Dnumber
+WHERE d.Dname = 'Research';
+\end{lstlisting}
+
+\textbf{Explanation:} This view uses a self-join on the EMPLOYEE table to get supervisor information, with a LEFT JOIN to handle employees without supervisors. The WHERE clause filters for the Research department.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM ResearchEmployeeSupervisor;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|l|l|r|}
+\hline
+\textbf{Employee\_Name} & \textbf{Supervisor\_Name} & \textbf{Employee\_Salary} \\
+\hline
+John B Smith & Franklin T Wong & 30000.00 \\
+Franklin T Wong & James E Borg & 40000.00 \\
+Ramesh K Narayan & Franklin T Wong & 38000.00 \\
+Joyce A English & Franklin T Wong & 25000.00 \\
+Ahmad V Jabbar & Franklin T Wong & 25000.00 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{View (c): Project Information}
+
+\textbf{Requirement:} A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS ProjectInfo;
+CREATE VIEW ProjectInfo AS
+SELECT 
+    p.Pname AS Project_Name,
+    d.Dname AS Controlling_Department,
+    COUNT(w.Essn) AS Number_of_Employees,
+    SUM(IFNULL(w.Hours, 0)) AS Total_Hours_Per_Week
+FROM PROJECT p
+JOIN DEPARTMENT d ON p.Dnum = d.Dnumber
+LEFT JOIN WORKS_ON w ON p.Pnumber = w.Pno
+GROUP BY p.Pnumber, p.Pname, d.Dname;
+\end{lstlisting}
+
+\textbf{Explanation:} This view joins PROJECT, DEPARTMENT, and WORKS\_ON tables, using GROUP BY to aggregate employee counts and total hours per project.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM ProjectInfo;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\small
+\begin{tabular}{|l|l|c|r|}
+\hline
+\textbf{Project\_Name} & \textbf{Ctrl\_Dept} & \textbf{Num\_Emp} & \textbf{Total\_Hours} \\
+\hline
+ProductX & Research & 2 & 52.5 \\
+ProductY & Research & 3 & 37.5 \\
+ProductZ & Research & 2 & 50.0 \\
+Computerization & Administration & 3 & 55.0 \\
+Reorganization & Headquarters & 3 & 25.0 \\
+Newbenefits & Administration & 3 & 55.0 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{View (d): Projects with More Than Two Employees}
+
+\textbf{Requirement:} A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project with more than two employees working on it.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS ProjectInfoMoreThanTwo;
+CREATE VIEW ProjectInfoMoreThanTwo AS
+SELECT 
+    p.Pname AS Project_Name,
+    d.Dname AS Controlling_Department,
+    COUNT(w.Essn) AS Number_of_Employees,
+    SUM(IFNULL(w.Hours, 0)) AS Total_Hours_Per_Week
+FROM PROJECT p
+JOIN DEPARTMENT d ON p.Dnum = d.Dnumber
+LEFT JOIN WORKS_ON w ON p.Pnumber = w.Pno
+GROUP BY p.Pnumber, p.Pname, d.Dname
+HAVING COUNT(w.Essn) > 2;
+\end{lstlisting}
+
+\textbf{Explanation:} Similar to View (c), but with a HAVING clause to filter projects that have more than 2 employees.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM ProjectInfoMoreThanTwo;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\small
+\begin{tabular}{|l|l|c|r|}
+\hline
+\textbf{Project\_Name} & \textbf{Ctrl\_Dept} & \textbf{Num\_Emp} & \textbf{Total\_Hours} \\
+\hline
+ProductY & Research & 3 & 37.5 \\
+Computerization & Administration & 3 & 55.0 \\
+Reorganization & Headquarters & 3 & 25.0 \\
+Newbenefits & Administration & 3 & 55.0 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{View (e): Employees with More Than 2 Dependents}
+
+\textbf{Requirement:} A view (SSN, Full Name of employee, Number of dependents) that includes information about employees who have the number of dependents greater than 2.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS EmployeesWithManyDependents;
+CREATE VIEW EmployeesWithManyDependents AS
+SELECT 
+    e.Ssn AS SSN,
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Full_Name,
+    COUNT(dep.Dependent_name) AS Number_of_Dependents
+FROM EMPLOYEE e
+JOIN DEPENDENT dep ON e.Ssn = dep.Essn
+GROUP BY e.Ssn, e.Fname, e.Minit, e.Lname
+HAVING COUNT(dep.Dependent_name) > 2;
+\end{lstlisting}
+
+\textbf{Explanation:} This view joins EMPLOYEE and DEPENDENT tables, groups by employee, and filters those with more than 2 dependents using HAVING.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM EmployeesWithManyDependents;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|l|l|c|}
+\hline
+\textbf{SSN} & \textbf{Full\_Name} & \textbf{Number\_of\_Dependents} \\
+\hline
+333445555 & Franklin T Wong & 3 \\
+123456789 & John B Smith & 3 \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{View (f): July Birthday Employees}
+
+\textbf{Requirement:} A view (Full Name of employee, date of birth, gender) for those employees who have their birthdate in July.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS JulyBirthdayEmployees;
+CREATE VIEW JulyBirthdayEmployees AS
+SELECT 
+    CONCAT(e.Fname, ' ', e.Minit, ' ', e.Lname) AS Full_Name,
+    e.Bdate AS Date_of_Birth,
+    e.Sex AS Gender
+FROM EMPLOYEE e
+WHERE MONTH(e.Bdate) = 7;
+\end{lstlisting}
+
+\textbf{Explanation:} This view uses the MONTH() function to filter employees born in July (month 7).
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM JulyBirthdayEmployees;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|l|l|c|}
+\hline
+\textbf{Full\_Name} & \textbf{Date\_of\_Birth} & \textbf{Gender} \\
+\hline
+Joyce A English & 1972-07-31 & F \\
+Alicia J Zelaya & 1968-07-19 & F \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{View (g): Young Dependents (Under 18)}
+
+\textbf{Requirement:} A view (Name of dependent, SSN of employee, date of birth of dependent) that includes information on all dependents who are less than 18 years old.
+
+\begin{lstlisting}
+DROP VIEW IF EXISTS YoungDependents;
+CREATE VIEW YoungDependents AS
+SELECT 
+    dep.Dependent_name AS Dependent_Name,
+    dep.Essn AS Employee_SSN,
+    dep.Bdate AS Dependent_Date_of_Birth
+FROM DEPENDENT dep
+WHERE TIMESTAMPDIFF(YEAR, dep.Bdate, CURDATE()) < 18;
+\end{lstlisting}
+
+\textbf{Explanation:} This view uses TIMESTAMPDIFF() to calculate the age of dependents and filters those under 18 years old.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Query the view
+SELECT * FROM YoungDependents;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+Empty set (no dependents under 18 in current data).

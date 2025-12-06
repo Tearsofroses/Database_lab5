@@ -30,3 +30,4 @@ SELECT
     GetTotalProjectsForEmployee(e.Ssn) AS Total_Projects
 FROM EMPLOYEE e
 ORDER BY Total_Projects DESC;
+

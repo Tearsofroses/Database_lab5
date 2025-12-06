@@ -1,103 +1,143 @@
 -- ==========================================
--- LAB 5: EXERCISE 2 - VALIDATION / CHECK SCRIPT
+-- LAB 5: EXERCISE 2 - CHECK SCRIPT
+-- Database: Hotel_Lab5
 -- ==========================================
 
 USE Hotel_Lab5;
 
--- ==========================================
--- VIEW DATA
--- ==========================================
-
--- Hotel Data
+-- -----------------------------------------
+-- View Database Tables
+-- -----------------------------------------
 SELECT * FROM Hotel;
-
--- Room Data
 SELECT * FROM Room;
-
--- Guest Data
 SELECT * FROM Guest;
-
--- Booking Data
 SELECT * FROM Booking;
 
--- LondonHotelRoom View
-SELECT * FROM LondonHotelRoom;
+-- -----------------------------------------
+-- Test Constraint (a) - Room Price Between $10 and $100
+-- -----------------------------------------
+-- Test 1: Try to insert room with price < 10 (should fail)
+INSERT INTO Room VALUES (301, 1, 'Single', 5);
+-- Result: Check constraint violated
 
--- ==========================================
--- TEST CONSTRAINT a: Double room price > $100
--- ==========================================
+-- Test 2: Try to insert room with price > 100 (should fail)
+INSERT INTO Room VALUES (302, 1, 'Suite', 150);
+-- Result: Check constraint violated
 
--- Should FAIL: Double room with price <= 100
--- INSERT INTO Room VALUES (10, 1, 'double', 90.00, 2);
+-- Test 3: Insert room with valid price (should succeed)
+INSERT INTO Room VALUES (303, 1, 'Double', 50);
+-- Result: Row inserted
 
--- Should SUCCEED: Double room with price > 100
-INSERT INTO Room VALUES (10, 1, 'double', 150.00, 2);
-SELECT * FROM Room WHERE roomNo = 10 AND hotelNo = 1;
-DELETE FROM Room WHERE roomNo = 10 AND hotelNo = 1;
+-- Cleanup
+DELETE FROM Room WHERE roomNo IN (301, 302, 303);
 
--- ==========================================
--- TEST CONSTRAINT b: Double room > highest single room
--- ==========================================
+-- -----------------------------------------
+-- Test Constraint (b) - Booking Duration <= 14 Days
+-- -----------------------------------------
+-- Test 1: Try to insert booking for 15 days (should fail)
+INSERT INTO Booking VALUES 
+    (1, 1, '2024-01-01', '2024-01-16', 101);
+-- Result: Check constraint violated
 
--- Check highest single room price in hotel 1
-SELECT MAX(price) AS max_single_price FROM Room WHERE hotelNo = 1 AND type = 'single';
+-- Test 2: Insert booking for exactly 14 days (should succeed)
+INSERT INTO Booking VALUES 
+    (1, 2, '2024-02-01', '2024-02-15', 102);
+-- Result: Row inserted
 
--- Should FAIL: Double room price <= highest single (80)
--- INSERT INTO Room VALUES (10, 1, 'double', 75.00, 2);
+-- Test 3: Insert booking for 7 days (should succeed)
+INSERT INTO Booking VALUES 
+    (1, 3, '2024-03-01', '2024-03-08', 103);
+-- Result: Row inserted
 
--- Should SUCCEED: Double room price > highest single
-INSERT INTO Room VALUES (10, 1, 'double', 120.00, 2);
-SELECT * FROM Room WHERE roomNo = 10 AND hotelNo = 1;
-DELETE FROM Room WHERE roomNo = 10 AND hotelNo = 1;
+-- Cleanup
+DELETE FROM Booking WHERE (hotelNo = 1 AND dateFrom IN ('2024-01-01', '2024-02-01', '2024-03-01'));
 
--- ==========================================
--- TEST CONSTRAINT c: No overlapping bookings
--- ==========================================
+-- -----------------------------------------
+-- Test Constraint (c) - No Double Booking
+-- -----------------------------------------
+-- Setup: Insert initial booking
+INSERT INTO Booking VALUES 
+    (1, 1, '2024-04-10', '2024-04-15', 101);
+-- Result: Row inserted
 
--- Check existing booking for guest 101 (2024-01-01 to 2024-01-05)
-SELECT * FROM Booking WHERE guestNo = 101;
+-- Test 1: Try overlapping booking (should fail)
+INSERT INTO Booking VALUES 
+    (1, 2, '2024-04-12', '2024-04-18', 101);
+-- Result: Trigger error - overlap
 
--- Should FAIL: Overlapping dates (2024-01-03 overlaps with existing)
--- INSERT INTO Booking VALUES (2, '2024-01-03', 1, 101, '2024-01-08', 1);
+-- Test 2: Non-overlapping booking (should succeed)
+INSERT INTO Booking VALUES 
+    (1, 2, '2024-04-20', '2024-04-25', 101);
+-- Result: Row inserted
 
--- Should SUCCEED: Non-overlapping dates
-INSERT INTO Booking VALUES (2, '2024-01-10', 1, 101, '2024-01-15', 1);
-SELECT * FROM Booking WHERE guestNo = 101;
-DELETE FROM Booking WHERE hotelNo = 2 AND dateFrom = '2024-01-10' AND roomNo = 1;
+-- Cleanup
+DELETE FROM Booking WHERE hotelNo = 1 AND roomNo = 101 AND dateFrom IN ('2024-04-10', '2024-04-20');
 
--- ==========================================
--- TEST CONSTRAINT d: NumOfAdult <= NumAdultMax
--- ==========================================
+-- -----------------------------------------
+-- Test Constraint (d) - Maximum Grosvenor Bookings
+-- -----------------------------------------
+-- Setup: Insert Grosvenor hotel
+INSERT INTO Hotel VALUES (10, 'Grosvenor', 'London');
+INSERT INTO Room VALUES (101, 10, 'Single', 50);
+INSERT INTO Guest VALUES (1, 'Test Guest', '123 Test St');
 
--- Check room capacity for room 1 in hotel 1 (single room, NumAdultMax = 1)
-SELECT roomNo, type, NumAdultMax FROM Room WHERE roomNo = 1 AND hotelNo = 1;
+-- Insert 10 bookings for guest 1 at Grosvenor
+INSERT INTO Booking VALUES (10, 1, '2024-01-01', '2024-01-05', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-01-06', '2024-01-10', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-01-11', '2024-01-15', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-01-16', '2024-01-20', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-01-21', '2024-01-25', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-02-01', '2024-02-05', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-02-06', '2024-02-10', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-02-11', '2024-02-15', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-02-16', '2024-02-20', 101);
+INSERT INTO Booking VALUES (10, 1, '2024-02-21', '2024-02-25', 101);
 
--- Should FAIL: NumOfAdult (3) > NumAdultMax (1)
--- INSERT INTO Booking VALUES (1, '2024-06-01', 1, 103, '2024-06-05', 3);
+-- Test: Try to insert 11th booking (should fail)
+INSERT INTO Booking VALUES 
+    (10, 1, '2024-12-01', '2024-12-05', 101);
+-- Result: Error - Guest cannot make more than 10 bookings for Grosvenor hotel
 
--- Should SUCCEED: NumOfAdult <= NumAdultMax
-INSERT INTO Booking VALUES (1, '2024-06-01', 1, 103, '2024-06-05', 1);
-SELECT * FROM Booking WHERE hotelNo = 1 AND dateFrom = '2024-06-01';
-DELETE FROM Booking WHERE hotelNo = 1 AND dateFrom = '2024-06-01' AND roomNo = 1;
+-- Cleanup
+DELETE FROM Booking WHERE hotelNo = 10;
+DELETE FROM Room WHERE hotelNo = 10;
+DELETE FROM Hotel WHERE hotelNo = 10;
+DELETE FROM Guest WHERE guestNo = 1;
 
--- ==========================================
--- TEST CONSTRAINT e: Auto-calculate TotalAmount
--- ==========================================
+-- -----------------------------------------
+-- Test Constraint (e) - London Room Price Increase <= 10%
+-- -----------------------------------------
+-- Setup: London hotel and room
+INSERT INTO Hotel VALUES (20, 'Royal', 'London');
+INSERT INTO Room VALUES (201, 20, 'Double', 80);
+-- Result: Row inserted
 
--- Check initial TotalAmount
-SELECT guestNo, guestName, TotalAmount FROM Guest;
+-- Test 1: Try to increase price by 15% (should fail)
+UPDATE Room SET price = 92 WHERE roomNo = 201 AND hotelNo = 20;
+-- Result: Trigger error
 
--- Insert new booking and check TotalAmount updates
--- Room 2 in hotel 3 costs 120/night, 5 nights = 600
-INSERT INTO Booking VALUES (3, '2024-05-01', 2, 103, '2024-05-06', 2);
-SELECT guestNo, guestName, TotalAmount FROM Guest WHERE guestNo = 103;
+-- Test 2: Increase price by 10% (should succeed)
+UPDATE Room SET price = 88 WHERE roomNo = 201 AND hotelNo = 20;
+-- Result: Row updated
 
--- Delete the booking and verify TotalAmount decreases
-DELETE FROM Booking WHERE hotelNo = 3 AND dateFrom = '2024-05-01' AND roomNo = 2;
-SELECT guestNo, guestName, TotalAmount FROM Guest WHERE guestNo = 103;
+-- Cleanup
+DELETE FROM Room WHERE hotelNo = 20;
+DELETE FROM Hotel WHERE hotelNo = 20;
 
--- ==========================================
--- TEST CONSTRAINT f: InsertIntoLondonHotelRoom procedure
+-- -----------------------------------------
+-- Test Constraint (f) - No Direct Deletes from Hotel Table
+-- -----------------------------------------
+-- Setup: Insert a test hotel
+INSERT INTO Hotel VALUES (99, 'Test Hotel', 'Test City');
+-- Result: Row inserted
+
+-- Test 1: Try direct delete (should fail)
+DELETE FROM Hotel WHERE hotelNo = 99;
+-- Result: Trigger error
+
+-- Test 2: Delete through view procedure (should succeed)
+CALL DeleteFromVhotel1(99);
+-- Result: Row deleted
 -- ==========================================
 
 -- View current London hotels

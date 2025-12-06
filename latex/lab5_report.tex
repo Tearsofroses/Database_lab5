@@ -12,6 +12,7 @@
 \usepackage{fancyhdr}
 \usepackage{tocloft}
 \usepackage{adjustbox}
+\usepackage{enumitem}
 
 \geometry{margin=1in}
 
@@ -81,8 +82,19 @@ The COMPANY database consists of the following tables:
 \end{itemize}
 
 % ==========================================
-\section{Part 1: Views}
+\section{Views}
 % ==========================================
+
+\textbf{Exercise:} Specify the following views in SQL on the COMPANY database schema:
+\begin{enumerate}[label=\alph*.]
+    \item A view that has the department name, manager name, and manager salary for every department.
+    \item A view that has the employee name, supervisor name, and employee salary for each employee who works in the 'Research' department.
+    \item A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project.
+    \item A view that has the project name, controlling department name, number of employees, and total hours worked per week on the project for each project with more than two employees working on it.
+    \item A view (SSN, Full Name of employee, Number of dependents) that includes information about employees who have the number of dependents greater than 2.
+    \item A view (Full Name of employee, date of birth, gender) for those employees who have their birthdate in July.
+    \item A view (Name of dependent, SSN of employee, date of birth of dependent) that includes information on all dependents who are less than 18 years old.
+\end{enumerate}
 
 \subsection{View (a): Department Manager Information}
 
@@ -344,8 +356,21 @@ SELECT * FROM YoungDependents;
 Empty set (no dependents under 18 in current data).
 
 % ==========================================
-\section{Part 2: Triggers}
+\section{Trigger (a) - Business Rules}
 % ==========================================
+
+\textbf{Exercise:} Create a database trigger for the following situations:
+\begin{itemize}
+    \item The supervisor of an employee must be older than the employee.
+    \item The salary of an employee cannot be greater than the salary of his/her supervisor.
+    \item The salary of an employee can only increase.
+    \item When increasing salary of employee, the increasing amount must not be more than 20\% of current salary.
+    \item An employee works on at most 4 projects.
+    \item The maximum number of hours an employee can work on all projects per week is 56.
+    \item The location of a project must be one of the locations of its department.
+    \item The salary of a department manager must be higher than the other employees working for that department.
+    \item Only department managers can work less than 5 hours on a project.
+\end{itemize}
 
 \subsection{Trigger (a.1): Supervisor Must Be Older}
 
@@ -667,9 +692,13 @@ INSERT INTO WORKS_ON VALUES ('123456789', 20, 10);
 -- Result: Success
 \end{lstlisting}
 
-\subsection{Task (b): Num\_of\_Emp Derived Attribute}
+% ==========================================
+\section{Task (b) - Num\_of\_Emp Derived Attribute}
+% ==========================================
 
-\textbf{Requirement:} Alter table Department to add the attribute Num\_of\_Emp that stores the number of employees working for each department. This attribute is a derived attribute from Employee.DNO and its value must be automatically calculated.
+\textbf{Exercise:} Alter table Department to add the attribute Num\_of\_Emp that stores the number of employees working for each department. This attribute is a derived attribute from Employee.DNO and its value must be automatically calculated.
+
+\textbf{Solution:}
 
 \begin{lstlisting}
 -- Add the column
@@ -758,95 +787,17 @@ SELECT Dnumber, Num_of_Emp FROM DEPARTMENT WHERE Dnumber = 5;
 -- Result: Num_of_Emp = 5 (decremented back)
 \end{lstlisting}
 
-\subsection{Trigger (e): Salary Log for High Salaries}
-
-\textbf{Requirement:} Write a trigger that logs any changes in case the new salary is greater than 50000 updated or inserted into our database.
-
-\begin{lstlisting}
--- Create the LOG table
-DROP TABLE IF EXISTS SALARY_LOG;
-CREATE TABLE SALARY_LOG (
-    Log_id INT AUTO_INCREMENT PRIMARY KEY,
-    SSN CHAR(9),
-    Content VARCHAR(255),
-    Log_Date DATE
-);
-
--- Trigger for INSERT
-DROP TRIGGER IF EXISTS trg_log_salary_insert;
-DELIMITER //
-CREATE TRIGGER trg_log_salary_insert
-AFTER INSERT ON EMPLOYEE
-FOR EACH ROW
-BEGIN
-    IF NEW.Salary > 50000 THEN
-        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
-        VALUES (NEW.Ssn, CONCAT('SALARY INSERT: ', NEW.Salary), CURDATE());
-    END IF;
-END //
-DELIMITER ;
-
--- Trigger for UPDATE
-DROP TRIGGER IF EXISTS trg_log_salary_update;
-DELIMITER //
-CREATE TRIGGER trg_log_salary_update
-AFTER UPDATE ON EMPLOYEE
-FOR EACH ROW
-BEGIN
-    IF NEW.Salary > 50000 THEN
-        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
-        VALUES (NEW.Ssn, CONCAT('SALARY UPDATE FROM ', OLD.Salary, ' TO ', NEW.Salary), CURDATE());
-    END IF;
-END //
-DELIMITER ;
-\end{lstlisting}
-
-\subsubsection*{Test Validation}
-\begin{lstlisting}
--- Test INSERT with high salary (> 50000)
-INSERT INTO EMPLOYEE VALUES ('High', 'H', 'Earner', '888888888', '1980-01-01', 
-                             '123 St', 'M', 55000, NULL, 1);
-
--- Check the log
-SELECT * FROM SALARY_LOG;
-\end{lstlisting}
-
-\textbf{Expected Output:}
-\begin{center}
-\begin{tabular}{|c|l|l|l|}
-\hline
-\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
-\hline
-1 & 888888888 & SALARY INSERT: 55000.00 & 2024-12-05 \\
-\hline
-\end{tabular}
-\end{center}
-
-\begin{lstlisting}
--- Test UPDATE with high salary
-UPDATE EMPLOYEE SET Salary = 60000 WHERE Ssn = '888888888';
-SELECT * FROM SALARY_LOG ORDER BY Log_id DESC LIMIT 1;
-\end{lstlisting}
-
-\textbf{Expected Output:}
-\begin{center}
-\footnotesize
-\begin{tabular}{|c|l|l|l|}
-\hline
-\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
-\hline
-2 & 888888888 & SALARY UPDATE: 55000 TO 60000 & 2024-12-05 \\
-\hline
-\end{tabular}
-\end{center}
-
 % ==========================================
-\section{Part 3: Functions}
+\section{Function (c) - Get Total Projects}
 % ==========================================
 
-\subsection{Function (c): Get Total Projects for Employee}
+\textbf{Exercise:} Write a function that returns the total number of projects when given an employee's ID.
+\begin{itemize}
+    \item \textbf{Input:} employee ID
+    \item \textbf{Output:} total number of projects
+\end{itemize}
 
-\textbf{Requirement:} Write a function that returns the total number of projects when given an employee's ID.
+\textbf{Solution:}
 
 \begin{lstlisting}
 DROP FUNCTION IF EXISTS GetTotalProjectsForEmployee;
@@ -932,12 +883,12 @@ FROM EMPLOYEE ORDER BY Projects DESC;
 \end{center}
 
 % ==========================================
-\section{Part 4: Stored Procedures}
+\section{Procedure (d) - Print Employee Details}
 % ==========================================
 
-\subsection{Stored Procedure (d): Print Employee Details}
+\textbf{Exercise:} Create a stored procedure that prints SSN, Full name, Department name, and annual salary of all employees.
 
-\textbf{Requirement:} Create a stored procedure that prints SSN, Full name, Department name, and annual salary of all employees.
+\textbf{Solution:}
 
 \begin{lstlisting}
 DROP PROCEDURE IF EXISTS PrintEmployeeDetails;
@@ -1012,9 +963,119 @@ CALL PrintEmployeeDetails();
 \end{tabular}
 \end{center}
 
-\subsection{Stored Procedure (f): Print Employee Salary Levels}
+% ==========================================
+\section{Trigger (e) - Salary Log}
+% ==========================================
 
-\textbf{Requirement:} Write a stored procedure that prints out the level of salary for each employee.
+\textbf{Exercise:} Write a trigger that logs any changes in case the new salary is greater than 50000 updated or inserted into our database.
+
+\textbf{Hint:}
+\begin{itemize}
+    \item Create a LOG table (SSN, CONTENT, DATE)
+    \item E.g., ('123456789', 'SALARY UPDATE FROM 30000 TO 70000', '06-NOV-2021')
+\end{itemize}
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Create the LOG table
+DROP TABLE IF EXISTS SALARY_LOG;
+CREATE TABLE SALARY_LOG (
+    Log_id INT AUTO_INCREMENT PRIMARY KEY,
+    SSN CHAR(9),
+    Content VARCHAR(255),
+    Log_Date DATE
+);
+
+-- Trigger for INSERT
+DROP TRIGGER IF EXISTS trg_log_salary_insert;
+DELIMITER //
+CREATE TRIGGER trg_log_salary_insert
+AFTER INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > 50000 THEN
+        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
+        VALUES (NEW.Ssn, CONCAT('SALARY INSERT: ', NEW.Salary), CURDATE());
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE
+DROP TRIGGER IF EXISTS trg_log_salary_update;
+DELIMITER //
+CREATE TRIGGER trg_log_salary_update
+AFTER UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > 50000 THEN
+        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
+        VALUES (NEW.Ssn, CONCAT('SALARY UPDATE FROM ', OLD.Salary, ' TO ', NEW.Salary), CURDATE());
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Test INSERT with high salary (> 50000)
+INSERT INTO EMPLOYEE VALUES ('High', 'H', 'Earner', '888888888', '1980-01-01', 
+                             '123 St', 'M', 55000, NULL, 1);
+
+-- Check the log
+SELECT * FROM SALARY_LOG;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
+\hline
+1 & 888888888 & SALARY INSERT: 55000.00 & 2024-12-05 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+-- Test UPDATE with high salary
+UPDATE EMPLOYEE SET Salary = 60000 WHERE Ssn = '888888888';
+SELECT * FROM SALARY_LOG ORDER BY Log_id DESC LIMIT 1;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
+\hline
+2 & 888888888 & SALARY UPDATE: 55000 TO 60000 & 2024-12-05 \\
+\hline
+\end{tabular}
+\end{center}
+
+% ==========================================
+\section{Procedure (f) - Employee Salary Levels}
+% ==========================================
+
+\textbf{Exercise:} Write a stored procedure that prints out the level of salary for each employee.
+
+\textbf{Rules:}
+\begin{itemize}
+    \item if (salary $<$ 20000) then ``level C''
+    \item if (salary between 20000 and 50000) then ``level B''
+    \item if (salary $>$ 50000) then ``level A''
+\end{itemize}
+
+\textbf{Example Output:}
+\begin{verbatim}
+123456789, John B Smith, level B
+333445555, Franklin T Wong, level B
+...
+\end{verbatim}
+
+\textbf{Solution:}
 
 \begin{lstlisting}
 DROP PROCEDURE IF EXISTS PrintEmployeeSalaryLevel;
@@ -1101,8 +1162,41 @@ CALL PrintEmployeeSalaryLevel();
 \end{itemize}
 
 % ==========================================
-\section{Part 5: Exercise 2 - Hotel Database}
+\section{Exercise 2 - Hotel Database}
 % ==========================================
+
+\textbf{Exercise:} The following tables form part of a database held in a relational DBMS:
+\begin{itemize}
+    \item \texttt{Hotel (hotelNo, hotelName, city)}
+    \item \texttt{Room (roomNo, hotelNo, type, price, NumAdultMax)}
+    \item \texttt{Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)}
+    \item \texttt{Guest (guestNo, guestName, guestAddress, TotalAmount)}
+\end{itemize}
+
+Where:
+\begin{itemize}
+    \item Hotel contains hotel details and hotelNo is the primary key;
+    \item Room contains room details for each hotel and (roomNo, hotelNo) forms the primary key;
+    \item Booking contains details of bookings; (hotelNo, dateFrom, roomNo) forms the primary key; (hotelNo, roomNo) is the foreign key references to Room(roomNo, hotelNo); guestNo is the foreign key references to Guest(guestNo);
+    \item Guest contains guest details and guestNo is the primary key; TotalAmount stores how much one guest has spent and is a derived attribute.
+\end{itemize}
+
+Now alter the Room, Booking, and Guest tables using the integrity enhancement features of SQL with the following constraints:
+\begin{enumerate}[label=\alph*.]
+    \item The price of all double rooms must be greater than \$100.
+    \item In a hotel, the price of double rooms must be greater than the price of the highest single room.
+    \item A guest cannot make two bookings with overlapping dates.
+    \item A guest cannot make a booking with number of adults greater than NumAdultMax value of booked room.
+    \item Automatically calculate the value for TotalAmount column of Guest relation.
+    \item Create an INSTEAD OF database trigger that will allow data to be inserted into the following view:
+\end{enumerate}
+
+\begin{lstlisting}
+CREATE VIEW LondonHotelRoom AS
+SELECT h.hotelNo, hotelName, city, roomNo, type, price
+FROM Hotel h, Room r
+WHERE h.hotelNo = r.hotelNo AND city = 'London';
+\end{lstlisting}
 
 \subsection{Database Schema}
 
@@ -1361,77 +1455,162 @@ SELECT guestNo, guestName, TotalAmount FROM Guest WHERE guestNo = 1;
 
 \subsection{Constraint (f): INSTEAD OF Trigger for LondonHotelRoom View}
 
+\textbf{Note:} INSTEAD OF triggers are supported in SQL Server, PostgreSQL, and Oracle, but NOT in MySQL. Below are implementations for different database systems.
+
+\subsubsection*{The View Definition}
 \begin{lstlisting}
--- Create the view
 DROP VIEW IF EXISTS LondonHotelRoom;
 CREATE VIEW LondonHotelRoom AS
 SELECT h.hotelNo, hotelName, city, roomNo, type, price
 FROM Hotel h, Room r
 WHERE h.hotelNo = r.hotelNo AND city = 'London';
+\end{lstlisting}
 
--- MySQL doesn't support INSTEAD OF triggers, use stored procedure
-DROP PROCEDURE IF EXISTS InsertIntoLondonHotelRoom;
-DELIMITER //
-CREATE PROCEDURE InsertIntoLondonHotelRoom(
-    IN p_hotelNo INT,
-    IN p_hotelName VARCHAR(50),
-    IN p_roomNo INT,
-    IN p_type VARCHAR(20),
-    IN p_price DECIMAL(10, 2)
-)
+\subsubsection*{SQL Server Syntax}
+\begin{lstlisting}
+CREATE TRIGGER trg_instead_of_insert_LondonHotelRoom
+ON LondonHotelRoom
+INSTEAD OF INSERT
+AS
 BEGIN
-    DECLARE hotel_exists INT;
+    SET NOCOUNT ON;
     
-    SELECT COUNT(*) INTO hotel_exists FROM Hotel WHERE hotelNo = p_hotelNo;
+    DECLARE @hotelNo INT, @hotelName VARCHAR(50), @roomNo INT, 
+            @type VARCHAR(20), @price DECIMAL(10,2);
     
-    IF hotel_exists = 0 THEN
-        INSERT INTO Hotel (hotelNo, hotelName, city) 
-        VALUES (p_hotelNo, p_hotelName, 'London');
+    -- Get values from the inserted pseudo-table
+    SELECT @hotelNo = hotelNo, @hotelName = hotelName, 
+           @roomNo = roomNo, @type = type, @price = price
+    FROM inserted;
+    
+    -- Check if hotel exists
+    IF NOT EXISTS (SELECT 1 FROM Hotel WHERE hotelNo = @hotelNo)
+    BEGIN
+        -- Insert new hotel with city = 'London'
+        INSERT INTO Hotel (hotelNo, hotelName, city)
+        VALUES (@hotelNo, @hotelName, 'London');
+    END
     ELSE
-        UPDATE Hotel SET hotelName = p_hotelName WHERE hotelNo = p_hotelNo;
+    BEGIN
+        -- Update hotel name if exists
+        UPDATE Hotel SET hotelName = @hotelName WHERE hotelNo = @hotelNo;
+    END
+    
+    -- Insert the room
+    INSERT INTO Room (roomNo, hotelNo, type, price)
+    VALUES (@roomNo, @hotelNo, @type, @price);
+END;
+\end{lstlisting}
+
+\subsubsection*{PostgreSQL Syntax}
+\begin{lstlisting}
+-- First create the trigger function
+CREATE OR REPLACE FUNCTION fn_instead_of_insert_LondonHotelRoom()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if hotel exists
+    IF NOT EXISTS (SELECT 1 FROM Hotel WHERE hotelNo = NEW.hotelNo) THEN
+        INSERT INTO Hotel (hotelNo, hotelName, city)
+        VALUES (NEW.hotelNo, NEW.hotelName, 'London');
+    ELSE
+        UPDATE Hotel SET hotelName = NEW.hotelName 
+        WHERE hotelNo = NEW.hotelNo;
     END IF;
     
-    INSERT INTO Room (roomNo, hotelNo, type, price) 
-    VALUES (p_roomNo, p_hotelNo, p_type, p_price);
-END //
-DELIMITER ;
+    -- Insert the room
+    INSERT INTO Room (roomNo, hotelNo, type, price)
+    VALUES (NEW.roomNo, NEW.hotelNo, NEW.type, NEW.price);
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create the INSTEAD OF trigger on the view
+CREATE TRIGGER trg_instead_of_insert_LondonHotelRoom
+INSTEAD OF INSERT ON LondonHotelRoom
+FOR EACH ROW
+EXECUTE FUNCTION fn_instead_of_insert_LondonHotelRoom();
 \end{lstlisting}
+
+\subsubsection*{Oracle Syntax}
+\begin{lstlisting}
+CREATE OR REPLACE TRIGGER trg_instead_of_insert_LondonHotelRoom
+INSTEAD OF INSERT ON LondonHotelRoom
+FOR EACH ROW
+DECLARE
+    v_hotel_count INT;
+BEGIN
+    -- Check if hotel exists
+    SELECT COUNT(*) INTO v_hotel_count 
+    FROM Hotel WHERE hotelNo = :NEW.hotelNo;
+    
+    IF v_hotel_count = 0 THEN
+        INSERT INTO Hotel (hotelNo, hotelName, city)
+        VALUES (:NEW.hotelNo, :NEW.hotelName, 'London');
+    ELSE
+        UPDATE Hotel SET hotelName = :NEW.hotelName 
+        WHERE hotelNo = :NEW.hotelNo;
+    END IF;
+    
+    -- Insert the room
+    INSERT INTO Room (roomNo, hotelNo, type, price)
+    VALUES (:NEW.roomNo, :NEW.hotelNo, :NEW.type, :NEW.price);
+END;
+/
+\end{lstlisting}
+
+\textbf{Explanation:} The INSTEAD OF trigger intercepts INSERT operations on the view and redirects them to the underlying base tables (Hotel and Room). When a user inserts into the LondonHotelRoom view:
+\begin{enumerate}
+    \item The trigger checks if the hotel already exists
+    \item If not, it creates a new hotel record with city = 'London'
+    \item If yes, it updates the hotel name
+    \item Finally, it inserts the room into the Room table
+\end{enumerate}
 
 \subsubsection*{Test Validation}
 \begin{lstlisting}
+-- Insert into the view using INSTEAD OF trigger
+INSERT INTO LondonHotelRoom (hotelNo, hotelName, city, roomNo, type, price)
+VALUES (10, 'Royal Palace Hotel', 'London', 501, 'double', 250.00);
+
+-- Verify data in base tables
+SELECT * FROM Hotel WHERE hotelNo = 10;
+SELECT * FROM Room WHERE hotelNo = 10;
+
 -- Query the view
-SELECT * FROM LondonHotelRoom;
+SELECT * FROM LondonHotelRoom WHERE hotelNo = 10;
 \end{lstlisting}
 
-\textbf{Expected Output:}
+\textbf{Expected Output (Hotel table):}
 \begin{center}
-\footnotesize
-\begin{tabular}{|c|l|l|c|l|r|}
+\begin{tabular}{|c|l|l|}
 \hline
-\textbf{hotelNo} & \textbf{hotelName} & \textbf{city} & \textbf{roomNo} & \textbf{type} & \textbf{price} \\
+\textbf{hotelNo} & \textbf{hotelName} & \textbf{city} \\
 \hline
-1 & Test Hotel & London & 101 & double & 150.00 \\
-1 & Test Hotel & London & 103 & single & 50.00 \\
+10 & Royal Palace Hotel & London \\
 \hline
 \end{tabular}
 \end{center}
 
-\begin{lstlisting}
--- Use procedure to insert via the view
-CALL InsertIntoLondonHotelRoom(2, 'Grand Hotel', 301, 'double', 200.00);
+\textbf{Expected Output (Room table):}
+\begin{center}
+\begin{tabular}{|c|c|l|r|}
+\hline
+\textbf{roomNo} & \textbf{hotelNo} & \textbf{type} & \textbf{price} \\
+\hline
+501 & 10 & double & 250.00 \\
+\hline
+\end{tabular}
+\end{center}
 
--- Verify the insert
-SELECT * FROM LondonHotelRoom WHERE hotelNo = 2;
-\end{lstlisting}
-
-\textbf{Expected Output:}
+\textbf{Expected Output (View):}
 \begin{center}
 \footnotesize
 \begin{tabular}{|c|l|l|c|l|r|}
 \hline
 \textbf{hotelNo} & \textbf{hotelName} & \textbf{city} & \textbf{roomNo} & \textbf{type} & \textbf{price} \\
 \hline
-2 & Grand Hotel & London & 301 & double & 200.00 \\
+10 & Royal Palace Hotel & London & 501 & double & 250.00 \\
 \hline
 \end{tabular}
 \end{center}

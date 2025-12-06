@@ -1,0 +1,411 @@
+% ==========================================
+\section{Exercise 2 - Hotel Database Constraints}
+% ==========================================
+
+\textbf{Exercise:} Consider the following schema:
+
+\textbf{Hotel}(\underline{hotelNo}, hotelName, city)\\
+\textbf{Room}(\underline{roomNo}, \underline{hotelNo}, type, price) FK: hotelNo refs Hotel\\
+\textbf{Booking}(\underline{hotelNo}, \underline{guestNo}, \underline{dateFrom}, dateTo, roomNo) FK: hotelNo refs Hotel, guestNo refs Guest, (hotelNo, roomNo) refs Room\\
+\textbf{Guest}(\underline{guestNo}, guestName, guestAddress)
+
+Write a constraint to implement each of the following requirements. For each constraint you should determine the most appropriate technique from the following:
+\begin{enumerate}[label=\arabic*)]
+    \item a domain type, domain constraint, attribute constraint
+    \item a general (table level) constraint
+    \item an assertion
+    \item a trigger
+    \item embedded SQL
+\end{enumerate}
+
+% --------------------
+\subsection{Constraint (a) - Room Price}
+% --------------------
+
+\textbf{Requirement:} The price of a room must be between \$10 and \$100.
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Domain Type / Attribute Constraint
+-- This is best implemented using an attribute/column constraint
+
+ALTER TABLE Room 
+ADD CONSTRAINT chk_room_price 
+CHECK (price >= 10 AND price <= 100);
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Test 1: Try to insert room with price < 10 (should fail)
+INSERT INTO Room VALUES (301, 1, 'Single', 5);
+
+-- Test 2: Try to insert room with price > 100 (should fail)
+INSERT INTO Room VALUES (302, 1, 'Suite', 150);
+
+-- Test 3: Insert room with valid price (should succeed)
+INSERT INTO Room VALUES (303, 1, 'Double', 50);
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Test 1 & INSERT price=5 & Check constraint violated \\
+Test 2 & INSERT price=150 & Check constraint violated \\
+Test 3 & INSERT price=50 & Row inserted \\
+\hline
+\end{tabular}
+\end{center}
+
+% --------------------
+\subsection{Constraint (b) - Booking Validity}
+% --------------------
+
+\textbf{Requirement:} A booking cannot be for a period of more than 14 days.
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Table Level Constraint
+-- A CHECK constraint that compares two columns
+
+ALTER TABLE Booking 
+ADD CONSTRAINT chk_booking_duration 
+CHECK (DATEDIFF(dateTo, dateFrom) <= 14);
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Test 1: Try to insert booking for 15 days (should fail)
+INSERT INTO Booking VALUES 
+    (1, 1, '2024-01-01', '2024-01-16', 101);
+
+-- Test 2: Insert booking for exactly 14 days (should succeed)
+INSERT INTO Booking VALUES 
+    (1, 2, '2024-02-01', '2024-02-15', 102);
+
+-- Test 3: Insert booking for 7 days (should succeed)
+INSERT INTO Booking VALUES 
+    (1, 3, '2024-03-01', '2024-03-08', 103);
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Test 1 & INSERT 15-day booking & Check constraint violated \\
+Test 2 & INSERT 14-day booking & Row inserted \\
+Test 3 & INSERT 7-day booking & Row inserted \\
+\hline
+\end{tabular}
+\end{center}
+
+% --------------------
+\subsection{Constraint (c) - No Double Booking}
+% --------------------
+
+\textbf{Requirement:} No room can be double-booked (i.e., the same room in the same hotel cannot be booked by two different guests for the same dates, or dates that would overlap with an existing booking).
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Trigger (required for complex logic with overlapping dates)
+DELIMITER //
+CREATE TRIGGER trg_no_double_booking
+BEFORE INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE conflict_count INT;
+    
+    SELECT COUNT(*) INTO conflict_count
+    FROM Booking
+    WHERE hotelNo = NEW.hotelNo
+      AND roomNo = NEW.roomNo
+      AND (
+          (NEW.dateFrom BETWEEN dateFrom AND dateTo)
+          OR (NEW.dateTo BETWEEN dateFrom AND dateTo)
+          OR (dateFrom BETWEEN NEW.dateFrom AND NEW.dateTo)
+          OR (dateTo BETWEEN NEW.dateFrom AND NEW.dateTo)
+      );
+    
+    IF conflict_count > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Room is already booked for overlapping dates';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Setup: Insert initial booking
+INSERT INTO Booking VALUES 
+    (1, 1, '2024-04-10', '2024-04-15', 101);
+
+-- Test 1: Try overlapping booking (should fail)
+INSERT INTO Booking VALUES 
+    (1, 2, '2024-04-12', '2024-04-18', 101);
+
+-- Test 2: Non-overlapping booking (should succeed)
+INSERT INTO Booking VALUES 
+    (1, 2, '2024-04-20', '2024-04-25', 101);
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Setup & INSERT Apr 10-15, Room 101 & Row inserted \\
+Test 1 & INSERT Apr 12-18, Room 101 & Trigger error - overlap \\
+Test 2 & INSERT Apr 20-25, Room 101 & Row inserted \\
+\hline
+\end{tabular}
+\end{center}
+
+% --------------------
+\subsection{Constraint (d) - Maximum Grosvenor Bookings}
+% --------------------
+
+\textbf{Requirement:} No guest can make more than 10 bookings for the same hotel with name `Grosvenor'.
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Trigger (required for counting bookings per guest per hotel)
+DELIMITER //
+CREATE TRIGGER trg_max_grosvenor_bookings
+BEFORE INSERT ON Booking
+FOR EACH ROW
+BEGIN
+    DECLARE booking_count INT;
+    DECLARE hotel_name VARCHAR(50);
+    
+    SELECT hotelName INTO hotel_name
+    FROM Hotel
+    WHERE hotelNo = NEW.hotelNo;
+    
+    IF hotel_name = 'Grosvenor' THEN
+        SELECT COUNT(*) INTO booking_count
+        FROM Booking
+        WHERE guestNo = NEW.guestNo
+          AND hotelNo = NEW.hotelNo;
+        
+        IF booking_count >= 10 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Guest cannot make more than 10 bookings for Grosvenor hotel';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Setup: Insert Grosvenor hotel
+INSERT INTO Hotel VALUES (10, 'Grosvenor', 'London');
+
+-- Insert 10 bookings for guest 1 at Grosvenor
+-- (simplified - in practice, dates would vary)
+-- After 10 bookings exist...
+
+-- Test: Try to insert 11th booking (should fail)
+INSERT INTO Booking VALUES 
+    (10, 1, '2024-12-01', '2024-12-05', 101);
+\end{lstlisting}
+
+\textbf{Expected Result:} After 10 existing bookings, the 11th booking attempt will fail with the error message ``Guest cannot make more than 10 bookings for Grosvenor hotel''.
+
+% --------------------
+\subsection{Constraint (e) - London Room Increase}
+% --------------------
+
+\textbf{Requirement:} The price of rooms at hotels in London cannot be increased by more than 10\%.
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Trigger (required for comparing old and new values on UPDATE)
+DELIMITER //
+CREATE TRIGGER trg_london_price_increase
+BEFORE UPDATE ON Room
+FOR EACH ROW
+BEGIN
+    DECLARE hotel_city VARCHAR(50);
+    
+    SELECT city INTO hotel_city
+    FROM Hotel
+    WHERE hotelNo = NEW.hotelNo;
+    
+    IF hotel_city = 'London' AND NEW.price > OLD.price * 1.10 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Price increase for London hotels cannot exceed 10%';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Setup: London hotel and room
+INSERT INTO Hotel VALUES (20, 'Royal', 'London');
+INSERT INTO Room VALUES (201, 20, 'Double', 80);
+
+-- Test 1: Try to increase price by 15% (should fail)
+UPDATE Room SET price = 92 WHERE roomNo = 201 AND hotelNo = 20;
+
+-- Test 2: Increase price by 10% (should succeed)
+UPDATE Room SET price = 88 WHERE roomNo = 201 AND hotelNo = 20;
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Setup & INSERT Room price=80 & Row inserted \\
+Test 1 & UPDATE to 92 (15\% increase) & Trigger error \\
+Test 2 & UPDATE to 88 (10\% increase) & Row updated \\
+\hline
+\end{tabular}
+\end{center}
+
+% --------------------
+\subsection{Constraint (f) - No Direct Deletes}
+% --------------------
+
+\textbf{Requirement:} The users cannot directly delete the records from the Hotel table. However, they should still be able to delete records through the Vhotel1 view.
+
+\textbf{Solution:}
+
+This requirement needs a combination of:
+\begin{enumerate}
+    \item A trigger to prevent direct DELETEs on the Hotel table
+    \item An INSTEAD OF trigger on the view to allow deletes through the view
+\end{enumerate}
+
+\textbf{Part 1: Prevent direct deletes on Hotel table}
+
+\begin{lstlisting}
+-- Trigger to prevent direct deletes on Hotel table
+DELIMITER //
+CREATE TRIGGER trg_prevent_hotel_delete
+BEFORE DELETE ON Hotel
+FOR EACH ROW
+BEGIN
+    -- Check if delete is coming from view (using session variable)
+    IF @deleting_from_view IS NULL OR @deleting_from_view = FALSE THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Direct deletion from Hotel table is not allowed. Use Vhotel1 view instead.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\textbf{Part 2: Create view and allow deletions through it}
+
+\begin{lstlisting}
+-- Create the Vhotel1 view
+CREATE OR REPLACE VIEW Vhotel1 AS
+SELECT hotelNo, hotelName, city FROM Hotel;
+
+-- Stored procedure to delete through view
+DELIMITER //
+CREATE PROCEDURE DeleteFromVhotel1(IN p_hotelNo INT)
+BEGIN
+    SET @deleting_from_view = TRUE;
+    DELETE FROM Hotel WHERE hotelNo = p_hotelNo;
+    SET @deleting_from_view = FALSE;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{INSTEAD OF Trigger Syntax (Other DBMS)}
+
+\textbf{SQL Server:}
+\begin{lstlisting}
+-- SQL Server supports INSTEAD OF triggers on views
+CREATE VIEW Vhotel1 AS
+SELECT hotelNo, hotelName, city FROM Hotel;
+GO
+
+CREATE TRIGGER trg_vhotel1_delete
+ON Vhotel1
+INSTEAD OF DELETE
+AS
+BEGIN
+    DELETE FROM Hotel WHERE hotelNo IN (SELECT hotelNo FROM deleted);
+END;
+GO
+\end{lstlisting}
+
+\textbf{PostgreSQL:}
+\begin{lstlisting}
+-- PostgreSQL uses trigger functions
+CREATE OR REPLACE VIEW Vhotel1 AS
+SELECT hotelNo, hotelName, city FROM Hotel;
+
+CREATE OR REPLACE FUNCTION fn_vhotel1_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    DELETE FROM Hotel WHERE hotelNo = OLD.hotelNo;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_vhotel1_delete
+INSTEAD OF DELETE ON Vhotel1
+FOR EACH ROW EXECUTE FUNCTION fn_vhotel1_delete();
+\end{lstlisting}
+
+\textbf{Oracle:}
+\begin{lstlisting}
+-- Oracle supports INSTEAD OF triggers on views
+CREATE OR REPLACE VIEW Vhotel1 AS
+SELECT hotelNo, hotelName, city FROM Hotel;
+
+CREATE OR REPLACE TRIGGER trg_vhotel1_delete
+INSTEAD OF DELETE ON Vhotel1
+FOR EACH ROW
+BEGIN
+    DELETE FROM Hotel WHERE hotelNo = :OLD.hotelNo;
+END;
+/
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Setup: Insert a test hotel
+INSERT INTO Hotel VALUES (99, 'Test Hotel', 'Test City');
+
+-- Test 1: Try direct delete (should fail)
+DELETE FROM Hotel WHERE hotelNo = 99;
+
+-- Test 2: Delete through view procedure (should succeed)
+CALL DeleteFromVhotel1(99);
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Setup & INSERT Hotel 99 & Row inserted \\
+Test 1 & Direct DELETE & Trigger error \\
+Test 2 & CALL DeleteFromVhotel1(99) & Row deleted \\
+\hline
+\end{tabular}
+\end{center}

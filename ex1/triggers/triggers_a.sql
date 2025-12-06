@@ -31,7 +31,7 @@ BEGIN
     IF NEW.Super_ssn IS NOT NULL THEN
         SELECT Bdate INTO supervisor_bdate FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
         
-        IF supervisor_bdate IS NOT NULL AND supervisor_bdate >= NEW.Bdate THEN
+        IF supervisor_bdate IS NOT NULL AND supervisor_bdate > NEW.Bdate THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Error: Supervisor must be older than the employee.';
         END IF;
@@ -50,7 +50,7 @@ BEGIN
     IF NEW.Super_ssn IS NOT NULL THEN
         SELECT Bdate INTO supervisor_bdate FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
         
-        IF supervisor_bdate IS NOT NULL AND supervisor_bdate >= NEW.Bdate THEN
+        IF supervisor_bdate IS NOT NULL AND supervisor_bdate > NEW.Bdate THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Error: Supervisor must be older than the employee.';
         END IF;

@@ -1,0 +1,336 @@
+% ==========================================
+\section{Trigger (a) - Business Rules}
+% ==========================================
+
+\textbf{Exercise:} Create a database trigger for the following situations:
+\begin{itemize}
+    \item The supervisor of an employee must be older than the employee.
+    \item The salary of an employee cannot be greater than the salary of his/her supervisor.
+    \item The salary of an employee can only increase.
+    \item When increasing salary of employee, the increasing amount must not be more than 20\% of current salary.
+    \item An employee works on at most 4 projects.
+    \item The maximum number of hours an employee can work on all projects per week is 56.
+    \item The location of a project must be one of the locations of its department.
+    \item The salary of a department manager must be higher than the other employees working for that department.
+    \item Only department managers can work less than 5 hours on a project.
+\end{itemize}
+
+\subsection{Trigger (a.1): Supervisor Must Be Older}
+
+\textbf{Requirement:} The supervisor of an employee must be older than the employee.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_supervisor_older_insert;
+DELIMITER //
+CREATE TRIGGER trg_supervisor_older_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE supervisor_bdate DATE;
+    IF NEW.Super_ssn IS NOT NULL THEN
+        SELECT Bdate INTO supervisor_bdate 
+        FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        IF supervisor_bdate IS NOT NULL AND NEW.Bdate <= supervisor_bdate THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Supervisor must be older than the employee.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\textbf{Explanation:} This trigger checks the birthdate of the supervisor before inserting an employee. If the supervisor is not older, it raises an error using SIGNAL.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- VALID INSERT: Employee born 1990, Supervisor (333445555) born 1955
+INSERT INTO EMPLOYEE VALUES 
+('Test', 'A', 'Valid', '111111110', '1990-01-01', '123 Test St', 'M', 25000, '333445555', 5);
+-- Result: Success
+
+-- INVALID INSERT: Employee born 1940, Supervisor born 1955 (supervisor younger)
+INSERT INTO EMPLOYEE VALUES 
+('Test', 'B', 'Invalid', '111111111', '1940-01-01', '123 Test St', 'M', 25000, '333445555', 5);
+-- Result: Error - Supervisor must be older than the employee.
+\end{lstlisting}
+
+\subsection{Trigger (a.2): Salary Cannot Exceed Supervisor's Salary}
+
+\textbf{Requirement:} The salary of an employee cannot be greater than the salary of his/her supervisor.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_salary_less_than_supervisor_insert;
+DELIMITER //
+CREATE TRIGGER trg_salary_less_than_supervisor_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE supervisor_salary DECIMAL(10, 2);
+    IF NEW.Super_ssn IS NOT NULL THEN
+        SELECT Salary INTO supervisor_salary 
+        FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        IF supervisor_salary IS NOT NULL AND NEW.Salary > supervisor_salary THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Employee salary cannot be greater than supervisor salary.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- VALID INSERT: Employee salary 35000, Supervisor salary 40000
+INSERT INTO EMPLOYEE VALUES 
+('Test', 'C', 'Valid', '111111112', '1990-01-01', '123 Test St', 'M', 35000, '333445555', 5);
+-- Result: Success
+
+-- INVALID INSERT: Employee salary 50000 > Supervisor salary 40000
+INSERT INTO EMPLOYEE VALUES 
+('Test', 'D', 'Invalid', '111111113', '1990-01-01', '123 Test St', 'M', 50000, '333445555', 5);
+-- Result: Error - Employee salary cannot be greater than supervisor salary.
+\end{lstlisting}
+
+\subsection{Trigger (a.3): Salary Can Only Increase}
+
+\textbf{Requirement:} The salary of an employee can only increase.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_salary_only_increase;
+DELIMITER //
+CREATE TRIGGER trg_salary_only_increase
+BEFORE UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary < OLD.Salary THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Employee salary can only increase, not decrease.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- VALID UPDATE: Increase salary from 30000 to 32000
+UPDATE EMPLOYEE SET Salary = 32000 WHERE Ssn = '123456789';
+-- Result: Success
+
+-- INVALID UPDATE: Decrease salary from 32000 to 28000
+UPDATE EMPLOYEE SET Salary = 28000 WHERE Ssn = '123456789';
+-- Result: Error - Employee salary can only increase, not decrease.
+\end{lstlisting}
+
+\subsection{Trigger (a.4): Maximum 20\% Salary Increase}
+
+\textbf{Requirement:} When increasing salary of employee, the increasing amount must not be more than 20\% of current salary.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_salary_increase_max_20_percent;
+DELIMITER //
+CREATE TRIGGER trg_salary_increase_max_20_percent
+BEFORE UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > OLD.Salary THEN
+        IF (NEW.Salary - OLD.Salary) > (OLD.Salary * 0.20) THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Salary increase cannot exceed 20% of current salary.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- VALID UPDATE: Increase salary by 15% (30000 -> 34500)
+UPDATE EMPLOYEE SET Salary = 34500 WHERE Ssn = '123456789';
+-- Result: Success
+
+-- INVALID UPDATE: Increase salary by 50% (30000 -> 45000)
+UPDATE EMPLOYEE SET Salary = 45000 WHERE Ssn = '123456789';
+-- Result: Error - Salary increase cannot exceed 20% of current salary.
+\end{lstlisting}
+
+\subsection{Trigger (a.5): Maximum 4 Projects Per Employee}
+
+\textbf{Requirement:} An employee works on at most 4 projects.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_max_4_projects_insert;
+DELIMITER //
+CREATE TRIGGER trg_max_4_projects_insert
+BEFORE INSERT ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE project_count INT;
+    SELECT COUNT(*) INTO project_count FROM WORKS_ON WHERE Essn = NEW.Essn;
+    IF project_count >= 4 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: An employee can work on at most 4 projects.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Assume employee '123456789' already works on 4 projects
+-- INVALID INSERT: Adding 5th project
+INSERT INTO WORKS_ON VALUES ('123456789', 99, 10);
+-- Result: Error - An employee can work on at most 4 projects.
+
+-- VALID INSERT: Employee with less than 4 projects
+INSERT INTO WORKS_ON VALUES ('999887777', 10, 10);
+-- Result: Success
+\end{lstlisting}
+
+\subsection{Trigger (a.6): Maximum 56 Hours Per Week}
+
+\textbf{Requirement:} The maximum number of hours an employee can work on all projects per week is 56.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_max_56_hours_insert;
+DELIMITER //
+CREATE TRIGGER trg_max_56_hours_insert
+BEFORE INSERT ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE total_hours DECIMAL(5, 1);
+    SELECT IFNULL(SUM(Hours), 0) INTO total_hours 
+    FROM WORKS_ON WHERE Essn = NEW.Essn;
+    IF (total_hours + IFNULL(NEW.Hours, 0)) > 56 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Total hours per week cannot exceed 56.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Assume employee total hours = 40
+-- VALID INSERT: Adding 15 hours (total = 55)
+INSERT INTO WORKS_ON VALUES ('123456789', 20, 15);
+-- Result: Success
+
+-- INVALID INSERT: Adding 20 hours would exceed 56
+INSERT INTO WORKS_ON VALUES ('123456789', 30, 20);
+-- Result: Error - Total hours per week cannot exceed 56.
+\end{lstlisting}
+
+\subsection{Trigger (a.7): Project Location Must Match Department Location}
+
+\textbf{Requirement:} The location of a project must be one of the locations of its department.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_project_location_valid_insert;
+DELIMITER //
+CREATE TRIGGER trg_project_location_valid_insert
+BEFORE INSERT ON PROJECT
+FOR EACH ROW
+BEGIN
+    DECLARE location_exists INT;
+    SELECT COUNT(*) INTO location_exists 
+    FROM DEPT_LOCATIONS 
+    WHERE Dnumber = NEW.Dnum AND Dlocation = NEW.Plocation;
+    IF location_exists = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Project location must be one of its department locations.';
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Assume Dept 5 has locations: Bellaire, Sugarland, Houston
+-- VALID INSERT: Project in valid department location
+INSERT INTO PROJECT VALUES ('TestProject', 99, 'Houston', 5);
+-- Result: Success
+
+-- INVALID INSERT: Project in location not belonging to department
+INSERT INTO PROJECT VALUES ('BadProject', 100, 'New York', 5);
+-- Result: Error - Project location must be one of its department locations.
+\end{lstlisting}
+
+\subsection{Trigger (a.8): Manager Salary Must Be Highest}
+
+\textbf{Requirement:} The salary of a department manager must be higher than the other employees working for that department.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_manager_salary_highest_insert;
+DELIMITER //
+CREATE TRIGGER trg_manager_salary_highest_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE manager_salary DECIMAL(10, 2);
+    DECLARE manager_ssn CHAR(9);
+    
+    IF NEW.Dno IS NOT NULL THEN
+        SELECT Mgr_ssn INTO manager_ssn FROM DEPARTMENT WHERE Dnumber = NEW.Dno;
+        IF manager_ssn IS NOT NULL AND manager_ssn != NEW.Ssn THEN
+            SELECT Salary INTO manager_salary FROM EMPLOYEE WHERE Ssn = manager_ssn;
+            IF manager_salary IS NOT NULL AND NEW.Salary >= manager_salary THEN
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Error: Employee salary cannot be equal or greater than department manager salary.';
+            END IF;
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Assume Dept 5 manager salary = 40000
+-- VALID INSERT: Employee salary 35000 < Manager salary 40000
+INSERT INTO EMPLOYEE VALUES 
+('Test', 'E', 'Valid', '111111114', '1990-01-01', '123 St', 'M', 35000, '333445555', 5);
+-- Result: Success
+
+-- INVALID INSERT: Employee salary 45000 >= Manager salary 40000
+INSERT INTO EMPLOYEE VALUES 
+('Test', 'F', 'Invalid', '111111115', '1990-01-01', '123 St', 'M', 45000, '333445555', 5);
+-- Result: Error - Employee salary cannot be equal or greater than manager salary.
+\end{lstlisting}
+
+\subsection{Trigger (a.9): Only Managers Can Work Less Than 5 Hours}
+
+\textbf{Requirement:} Only department managers can work less than 5 hours on a project.
+
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS trg_min_5_hours_non_manager_insert;
+DELIMITER //
+CREATE TRIGGER trg_min_5_hours_non_manager_insert
+BEFORE INSERT ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE is_manager INT;
+    IF NEW.Hours IS NOT NULL AND NEW.Hours < 5 THEN
+        SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Essn;
+        IF is_manager = 0 THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Only department managers can work less than 5 hours on a project.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- VALID INSERT: Manager (333445555) working 3 hours
+INSERT INTO WORKS_ON VALUES ('333445555', 10, 3);
+-- Result: Success (managers can work < 5 hours)
+
+-- INVALID INSERT: Non-manager working 3 hours
+INSERT INTO WORKS_ON VALUES ('123456789', 20, 3);
+-- Result: Error - Only department managers can work less than 5 hours.
+
+-- VALID INSERT: Non-manager working 10 hours
+INSERT INTO WORKS_ON VALUES ('123456789', 20, 10);
+-- Result: Success
+\end{lstlisting}

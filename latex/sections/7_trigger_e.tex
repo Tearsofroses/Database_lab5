@@ -1,0 +1,91 @@
+% ==========================================
+\section{Trigger (e) - Salary Log}
+% ==========================================
+
+\textbf{Exercise:} Write a trigger that logs any changes in case the new salary is greater than 50000 updated or inserted into our database.
+
+\textbf{Hint:}
+\begin{itemize}
+    \item Create a LOG table (SSN, CONTENT, DATE)
+    \item E.g., ('123456789', 'SALARY UPDATE FROM 30000 TO 70000', '06-NOV-2021')
+\end{itemize}
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+-- Create the LOG table
+DROP TABLE IF EXISTS SALARY_LOG;
+CREATE TABLE SALARY_LOG (
+    Log_id INT AUTO_INCREMENT PRIMARY KEY,
+    SSN CHAR(9),
+    Content VARCHAR(255),
+    Log_Date DATE
+);
+
+-- Trigger for INSERT
+DROP TRIGGER IF EXISTS trg_log_salary_insert;
+DELIMITER //
+CREATE TRIGGER trg_log_salary_insert
+AFTER INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > 50000 THEN
+        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
+        VALUES (NEW.Ssn, CONCAT('SALARY INSERT: ', NEW.Salary), CURDATE());
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE
+DROP TRIGGER IF EXISTS trg_log_salary_update;
+DELIMITER //
+CREATE TRIGGER trg_log_salary_update
+AFTER UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    IF NEW.Salary > 50000 THEN
+        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
+        VALUES (NEW.Ssn, CONCAT('SALARY UPDATE FROM ', OLD.Salary, ' TO ', NEW.Salary), CURDATE());
+    END IF;
+END //
+DELIMITER ;
+\end{lstlisting}
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Test INSERT with high salary (> 50000)
+INSERT INTO EMPLOYEE VALUES ('High', 'H', 'Earner', '888888888', '1980-01-01', 
+                             '123 St', 'M', 55000, NULL, 1);
+
+-- Check the log
+SELECT * FROM SALARY_LOG;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
+\hline
+1 & 888888888 & SALARY INSERT: 55000.00 & 2024-12-05 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+-- Test UPDATE with high salary
+UPDATE EMPLOYEE SET Salary = 60000 WHERE Ssn = '888888888';
+SELECT * FROM SALARY_LOG ORDER BY Log_id DESC LIMIT 1;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
+\hline
+2 & 888888888 & SALARY UPDATE: 55000 TO 60000 & 2024-12-05 \\
+\hline
+\end{tabular}
+\end{center}

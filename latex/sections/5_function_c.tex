@@ -1,0 +1,94 @@
+% ==========================================
+\section{Function (c) - Get Total Projects}
+% ==========================================
+
+\textbf{Exercise:} Write a function that returns the total number of projects when given an employee's ID.
+\begin{itemize}
+    \item \textbf{Input:} employee ID
+    \item \textbf{Output:} total number of projects
+\end{itemize}
+
+\textbf{Solution:}
+
+\begin{lstlisting}
+DROP FUNCTION IF EXISTS GetTotalProjectsForEmployee;
+DELIMITER //
+CREATE FUNCTION GetTotalProjectsForEmployee(emp_ssn CHAR(9))
+RETURNS INT
+DETERMINISTIC
+READS SQL DATA
+BEGIN
+    DECLARE total_projects INT;
+    
+    SELECT COUNT(*) INTO total_projects
+    FROM WORKS_ON
+    WHERE Essn = emp_ssn;
+    
+    RETURN total_projects;
+END //
+DELIMITER ;
+
+-- Example usage:
+SELECT GetTotalProjectsForEmployee('123456789') AS Total_Projects;
+SELECT GetTotalProjectsForEmployee('333445555') AS Total_Projects;
+\end{lstlisting}
+
+\textbf{Explanation:} This function takes an employee SSN as input and returns the count of projects that employee works on from the WORKS\_ON table.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Call function for employee '123456789'
+SELECT GetTotalProjectsForEmployee('123456789') AS Total_Projects;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+\textbf{Total\_Projects} \\
+\hline
+2 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+-- Call function for employee '333445555'
+SELECT GetTotalProjectsForEmployee('333445555') AS Total_Projects;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|c|}
+\hline
+\textbf{Total\_Projects} \\
+\hline
+2 \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}
+-- List all employees with their project counts
+SELECT Ssn, CONCAT(Fname, ' ', Lname) AS Name, 
+       GetTotalProjectsForEmployee(Ssn) AS Projects
+FROM EMPLOYEE ORDER BY Projects DESC;
+\end{lstlisting}
+
+\textbf{Expected Output:}
+\begin{center}
+\begin{tabular}{|l|l|c|}
+\hline
+\textbf{Ssn} & \textbf{Name} & \textbf{Projects} \\
+\hline
+123456789 & John Smith & 2 \\
+333445555 & Franklin Wong & 2 \\
+999887777 & Alicia Zelaya & 2 \\
+987654321 & Jennifer Wallace & 2 \\
+666884444 & Ramesh Narayan & 3 \\
+453453453 & Joyce English & 2 \\
+987987987 & Ahmad Jabbar & 2 \\
+888665555 & James Borg & 0 \\
+\hline
+\end{tabular}
+\end{center}

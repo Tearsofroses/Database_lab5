@@ -1,36 +1,34 @@
 \contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
 \contentsline {subsection}{\numberline {1.1}Database Schema: COMPANY}{3}{subsection.1.1}%
-\contentsline {section}{\numberline {2}Part 1: Views}{3}{section.2}%
-\contentsline {subsection}{\numberline {2.1}View (a): Department Manager Information}{3}{subsection.2.1}%
+\contentsline {section}{\numberline {2}Views}{3}{section.2}%
+\contentsline {subsection}{\numberline {2.1}View (a): Department Manager Information}{4}{subsection.2.1}%
 \contentsline {subsection}{\numberline {2.2}View (b): Research Department Employees and Supervisors}{4}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}View (c): Project Information}{4}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.3}View (c): Project Information}{5}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}View (d): Projects with More Than Two Employees}{5}{subsection.2.4}%
-\contentsline {subsection}{\numberline {2.5}View (e): Employees with More Than 2 Dependents}{5}{subsection.2.5}%
-\contentsline {subsection}{\numberline {2.6}View (f): July Birthday Employees}{6}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.5}View (e): Employees with More Than 2 Dependents}{6}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}View (f): July Birthday Employees}{7}{subsection.2.6}%
 \contentsline {subsection}{\numberline {2.7}View (g): Young Dependents (Under 18)}{7}{subsection.2.7}%
-\contentsline {section}{\numberline {3}Part 2: Triggers}{7}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Trigger (a.1): Supervisor Must Be Older}{7}{subsection.3.1}%
-\contentsline {subsection}{\numberline {3.2}Trigger (a.2): Salary Cannot Exceed Supervisor's Salary}{8}{subsection.3.2}%
+\contentsline {section}{\numberline {3}Trigger (a) - Business Rules}{7}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Trigger (a.1): Supervisor Must Be Older}{8}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Trigger (a.2): Salary Cannot Exceed Supervisor's Salary}{9}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Trigger (a.3): Salary Can Only Increase}{9}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Trigger (a.4): Maximum 20\% Salary Increase}{9}{subsection.3.4}%
-\contentsline {subsection}{\numberline {3.5}Trigger (a.5): Maximum 4 Projects Per Employee}{10}{subsection.3.5}%
-\contentsline {subsection}{\numberline {3.6}Trigger (a.6): Maximum 56 Hours Per Week}{10}{subsection.3.6}%
-\contentsline {subsection}{\numberline {3.7}Trigger (a.7): Project Location Must Match Department Location}{11}{subsection.3.7}%
-\contentsline {subsection}{\numberline {3.8}Trigger (a.8): Manager Salary Must Be Highest}{11}{subsection.3.8}%
-\contentsline {subsection}{\numberline {3.9}Trigger (a.9): Only Managers Can Work Less Than 5 Hours}{12}{subsection.3.9}%
-\contentsline {subsection}{\numberline {3.10}Task (b): Num\_of\_Emp Derived Attribute}{13}{subsection.3.10}%
-\contentsline {subsection}{\numberline {3.11}Trigger (e): Salary Log for High Salaries}{15}{subsection.3.11}%
-\contentsline {section}{\numberline {4}Part 3: Functions}{16}{section.4}%
-\contentsline {subsection}{\numberline {4.1}Function (c): Get Total Projects for Employee}{16}{subsection.4.1}%
-\contentsline {section}{\numberline {5}Part 4: Stored Procedures}{17}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Stored Procedure (d): Print Employee Details}{17}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Stored Procedure (f): Print Employee Salary Levels}{18}{subsection.5.2}%
-\contentsline {section}{\numberline {6}Part 5: Exercise 2 - Hotel Database}{20}{section.6}%
-\contentsline {subsection}{\numberline {6.1}Database Schema}{20}{subsection.6.1}%
-\contentsline {subsection}{\numberline {6.2}Constraint (a): Double Room Price > \$100}{20}{subsection.6.2}%
-\contentsline {subsection}{\numberline {6.3}Constraint (b): Double Room > Highest Single Room}{21}{subsection.6.3}%
-\contentsline {subsection}{\numberline {6.4}Constraint (c): No Overlapping Bookings}{22}{subsection.6.4}%
-\contentsline {subsection}{\numberline {6.5}Constraint (d): NumOfAdult <= NumAdultMax}{22}{subsection.6.5}%
-\contentsline {subsection}{\numberline {6.6}Constraint (e): Auto-Calculate TotalAmount}{23}{subsection.6.6}%
-\contentsline {subsection}{\numberline {6.7}Constraint (f): INSTEAD OF Trigger for LondonHotelRoom View}{24}{subsection.6.7}%
-\contentsline {section}{\numberline {7}Conclusion}{25}{section.7}%
+\contentsline {subsection}{\numberline {3.4}Trigger (a.4): Maximum 20\% Salary Increase}{10}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Trigger (a.5): Maximum 4 Projects Per Employee}{11}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}Trigger (a.6): Maximum 56 Hours Per Week}{11}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Trigger (a.7): Project Location Must Match Department Location}{12}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Trigger (a.8): Manager Salary Must Be Highest}{12}{subsection.3.8}%
+\contentsline {subsection}{\numberline {3.9}Trigger (a.9): Only Managers Can Work Less Than 5 Hours}{13}{subsection.3.9}%
+\contentsline {section}{\numberline {4}Task (b) - Num\_of\_Emp Derived Attribute}{14}{section.4}%
+\contentsline {section}{\numberline {5}Function (c) - Get Total Projects}{16}{section.5}%
+\contentsline {section}{\numberline {6}Procedure (d) - Print Employee Details}{17}{section.6}%
+\contentsline {section}{\numberline {7}Trigger (e) - Salary Log}{18}{section.7}%
+\contentsline {section}{\numberline {8}Procedure (f) - Employee Salary Levels}{19}{section.8}%
+\contentsline {section}{\numberline {9}Exercise 2 - Hotel Database}{21}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Database Schema}{22}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Constraint (a): Double Room Price > \$100}{23}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Constraint (b): Double Room > Highest Single Room}{23}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Constraint (c): No Overlapping Bookings}{24}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Constraint (d): NumOfAdult <= NumAdultMax}{25}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Constraint (e): Auto-Calculate TotalAmount}{25}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Constraint (f): INSTEAD OF Trigger for LondonHotelRoom View}{26}{subsection.9.7}%
+\contentsline {section}{\numberline {10}Conclusion}{29}{section.10}%

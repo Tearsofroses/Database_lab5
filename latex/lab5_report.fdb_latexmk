@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1764939189.92946 "d:/Projects/Database_lab5/latex/lab5_report.tex" "lab5_report.pdf" "lab5_report" 1764939191.96019 0
+["pdflatex"] 1764947381.87654 "d:/Projects/Database_lab5/latex/lab5_report.tex" "lab5_report.pdf" "lab5_report" 1764947384.12013 0
   "C:/Users/LEGION/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1764938846 88371 b965f57369ed322039596060d18f4416 ""
   "C:/Users/LEGION/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ecbx1000.pk" 1764938858 25420 9059ecb07e36f16b4a76c4d2054659b8 ""
   "C:/Users/LEGION/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ecbx1095.pk" 1764938850 28976 0ab064f9b52de8402871f6c7b4d9185f ""
@@ -89,6 +89,7 @@
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/base/inputenc.sty" 1749467999 5048 0270515b828149155424600fd2d58ac5 ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/base/size12.clo" 1749467999 8449 8dc66c6c313c8eb2d774af83bca435dd ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/collectbox/collectbox.sty" 1667300686 9124 59c3b56f1a073de66e3eea35f9c173c8 ""
+  "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/enumitem/enumitem.sty" 1738917170 52272 63d293bc0d496619edb57585740861a2 ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/epstopdf-pkg/epstopdf-base.sty" 1623003186 13886 d1306dcf79a944f6988e688c1785f9ce ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/etoolbox/etoolbox.sty" 1759409308 46885 8953c67ffba03252c6090aa19568b8ba ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/fancyhdr/fancyhdr.sty" 1740138435 31715 19e60610b63819fe670dfa1cd84a4e94 ""
@@ -124,11 +125,11 @@
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/varwidth/varwidth.sty" 1238469540 10894 d359a13923460b2a73d4312d613554c8 ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/xcolor/xcolor.sty" 1729265222 55384 b454dec21c2d9f45ec0b793f0995b992 ""
   "C:/Users/LEGION/AppData/Local/Programs/MiKTeX/tex/latex/xkeyval/xkeyval.sty" 1656236919 4937 4ce600ce9bd4ec84d0250eb6892fcf4f ""
-  "d:/Projects/Database_lab5/latex/lab5_report.tex" 1764939190 45314 a76809786f7a4814e3345143c5639f59 ""
-  "lab5_report.aux" 1764939191 5377 a9813ffb93540a6d151b4e20a10a1ec9 "pdflatex"
-  "lab5_report.out" 1764939191 9494 4b4c90ee61d45a850dbb6df0fc96de88 "pdflatex"
-  "lab5_report.tex" 1764939190 45314 a76809786f7a4814e3345143c5639f59 ""
-  "lab5_report.toc" 1764939191 3701 bd43d7dfc72d8e60d8bca2e98df1484a "pdflatex"
+  "d:/Projects/Database_lab5/latex/lab5_report.tex" 1764947362 53085 7ecd00083fa7aeccdee93a77c89124ca ""
+  "lab5_report.aux" 1764947383 5038 cba8794902304ef5f831fc577b6ad4e0 "pdflatex"
+  "lab5_report.out" 1764947383 8851 0427e8e7b1a9955d32cda57d56ad803f "pdflatex"
+  "lab5_report.tex" 1764947362 53085 7ecd00083fa7aeccdee93a77c89124ca ""
+  "lab5_report.toc" 1764947383 3444 ba91ed7e5904789cb16b0f4727b9cd18 "pdflatex"
   (generated)
   "lab5_report.aux"
   "lab5_report.log"
