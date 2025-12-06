@@ -198,9 +198,9 @@ DELIMITER ;
 -- Constraint 7: An employee can only work on projects of the controlling department
 -- -----------------------------------------
 
-DROP TRIGGER IF EXISTS trg_project_location_valid;
+DROP TRIGGER IF EXISTS trg_project_dept_valid;
 DELIMITER //
-CREATE TRIGGER trg_project_location_valid
+CREATE TRIGGER trg_project_dept_valid
 BEFORE INSERT ON WORKS_ON
 FOR EACH ROW
 BEGIN
@@ -213,6 +213,26 @@ BEGIN
     IF emp_dept != project_dept THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Error: Employee can only work on projects controlled by their department.';
+    END IF;
+END //
+DELIMITER ;
+
+-- Additional trigger: Project location must be one of department locations
+DROP TRIGGER IF EXISTS trg_project_location_valid;
+DELIMITER //
+CREATE TRIGGER trg_project_location_valid
+BEFORE INSERT ON PROJECT
+FOR EACH ROW
+BEGIN
+    DECLARE location_exists INT;
+    
+    SELECT COUNT(*) INTO location_exists 
+    FROM DEPT_LOCATIONS 
+    WHERE Dnumber = NEW.Dnum AND Dlocation = NEW.Plocation;
+    
+    IF location_exists = 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Project location must be one of its department locations.';
     END IF;
 END //
 DELIMITER ;

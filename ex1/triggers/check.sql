@@ -84,37 +84,48 @@ UPDATE EMPLOYEE SET Salary = 30000 WHERE Ssn = '123456789';
 -- -----------------------------------------
 -- Test Constraint a.5: Max 4 projects per employee
 -- -----------------------------------------
--- Assume employee '123456789' already works on 4 projects
--- INVALID INSERT: Adding 5th project
-INSERT INTO WORKS_ON VALUES ('123456789', 99, 10);
+-- Check current projects for employee '123456789'
+SELECT Essn, Pno FROM WORKS_ON WHERE Essn = '123456789';
+
+-- INVALID INSERT: Adding 5th project (employee already has 4 projects)
+-- Note: Use existing project number (10, 20, 30 exist)
+INSERT INTO WORKS_ON VALUES ('123456789', 10, 10);
 -- Result: Error - An employee can work on at most 4 projects.
 
--- VALID INSERT: Employee with less than 4 projects
-INSERT INTO WORKS_ON VALUES ('999887777', 10, 10);
+-- VALID INSERT: Employee with less than 4 projects (666884444 has fewer projects)
+-- Check available projects for employee in dept 5
+SELECT Pnumber FROM PROJECT WHERE Pnumber NOT IN (SELECT Pno FROM WORKS_ON WHERE Essn = '666884444') AND Dnum = 5;
+INSERT INTO WORKS_ON VALUES ('666884444', 1, 10);
 -- Result: Success
 
 -- Cleanup
-DELETE FROM WORKS_ON WHERE Essn = '999887777' AND Pno = 10;
+DELETE FROM WORKS_ON WHERE Essn = '666884444' AND Pno = 1;
 
 -- -----------------------------------------
 -- Test Constraint a.6: Max 56 hours/week
 -- -----------------------------------------
--- Assume employee total hours = 40
--- VALID INSERT: Adding 15 hours (total = 55)
-INSERT INTO WORKS_ON VALUES ('123456789', 20, 15);
+-- Check current hours for employee '123456789'
+SELECT Essn, SUM(Hours) AS Total_Hours FROM WORKS_ON WHERE Essn = '123456789';
+
+-- VALID INSERT: Adding hours that don't exceed 56 total
+-- Note: Use existing project number that employee isn't working on yet (project 3, dept 5)
+INSERT INTO WORKS_ON VALUES ('123456789', 3, 5);
 -- Result: Success
 
--- INVALID INSERT: Adding 20 hours would exceed 56
-INSERT INTO WORKS_ON VALUES ('123456789', 30, 20);
+-- INVALID INSERT: Adding hours that would exceed 56
+-- First check if this would exceed: existing hours + new hours > 56
+INSERT INTO WORKS_ON VALUES ('666884444', 2, 50);
 -- Result: Error - Total hours per week cannot exceed 56.
 
 -- Cleanup
-DELETE FROM WORKS_ON WHERE Essn = '123456789' AND Pno IN (20, 30);
+DELETE FROM WORKS_ON WHERE (Essn = '123456789' AND Pno = 3) OR (Essn = '666884444' AND Pno = 2);
 
 -- -----------------------------------------
 -- Test Constraint a.7: Project location must match department location
 -- -----------------------------------------
--- Assume Dept 5 has locations: Bellaire, Sugarland, Houston
+-- Check Dept 5 locations
+SELECT Dnumber, Dlocation FROM DEPT_LOCATIONS WHERE Dnumber = 5;
+
 -- VALID INSERT: Project in valid department location
 INSERT INTO PROJECT VALUES ('TestProject', 99, 'Houston', 5);
 -- Result: Success
@@ -129,15 +140,18 @@ DELETE FROM PROJECT WHERE Pnumber IN (99, 100);
 -- -----------------------------------------
 -- Test Constraint a.8: Manager salary must be highest
 -- -----------------------------------------
--- Assume Dept 5 manager salary = 40000
--- VALID INSERT: Employee salary 35000 < Manager salary 40000
+-- Check Dept 5 manager and salaries
+SELECT Mgr_ssn, (SELECT Salary FROM EMPLOYEE WHERE Ssn = Mgr_ssn) AS Manager_Salary
+FROM DEPARTMENT WHERE Dnumber = 5;
+
+-- VALID INSERT: Employee salary < Manager salary
 INSERT INTO EMPLOYEE VALUES 
 ('Test', 'E', 'Valid', '111111114', '1990-01-01', '123 St', 'M', 35000, '333445555', 5);
 -- Result: Success
 
--- INVALID INSERT: Employee salary 45000 >= Manager salary 40000
+-- INVALID INSERT: Employee salary >= Manager salary
 INSERT INTO EMPLOYEE VALUES 
-('Test', 'F', 'Invalid', '111111115', '1990-01-01', '123 St', 'M', 45000, '333445555', 5);
+('Test', 'F', 'Invalid', '111111115', '1990-01-01', '123 St', 'M', 50000, '333445555', 5);
 -- Result: Error - Employee salary cannot be equal or greater than manager salary.
 
 -- Cleanup
@@ -146,20 +160,25 @@ DELETE FROM EMPLOYEE WHERE Ssn IN ('111111114', '111111115');
 -- -----------------------------------------
 -- Test Constraint a.9: Only managers can work less than 5 hours
 -- -----------------------------------------
--- VALID INSERT: Manager (333445555) working 3 hours
-INSERT INTO WORKS_ON VALUES ('333445555', 10, 3);
+-- Check which projects each person works on
+SELECT Essn, COUNT(*) AS Project_Count FROM WORKS_ON GROUP BY Essn;
+
+-- VALID INSERT: Manager (888665555, Dept 1 manager) working 3 hours on project 20 (dept 1)
+-- Manager 888665555 currently works only on project 20 with NULL hours
+UPDATE WORKS_ON SET Hours = 3 WHERE Essn = '888665555' AND Pno = 20;
 -- Result: Success (managers can work < 5 hours)
 
--- INVALID INSERT: Non-manager working 3 hours
-INSERT INTO WORKS_ON VALUES ('123456789', 20, 3);
+-- INVALID INSERT: Non-manager (453453453) working 3 hours on project 3 from dept 5
+INSERT INTO WORKS_ON VALUES ('453453453', 3, 3);
 -- Result: Error - Only department managers can work less than 5 hours.
 
 -- VALID INSERT: Non-manager working 10 hours
-INSERT INTO WORKS_ON VALUES ('123456789', 20, 10);
+INSERT INTO WORKS_ON VALUES ('453453453', 3, 10);
 -- Result: Success
 
 -- Cleanup
-DELETE FROM WORKS_ON WHERE (Essn = '333445555' AND Pno = 10) OR (Essn = '123456789' AND Pno = 20);
+UPDATE WORKS_ON SET Hours = NULL WHERE Essn = '888665555' AND Pno = 20;
+DELETE FROM WORKS_ON WHERE Essn = '453453453' AND Pno = 3;
 
 -- -----------------------------------------
 -- Test Task b: Num_of_Emp derived attribute
