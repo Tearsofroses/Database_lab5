@@ -2,50 +2,46 @@
 \section{Trigger (e) - Salary Log}
 % ==========================================
 
-\textbf{Exercise:} Write a trigger that logs any changes in case the new salary is greater than 50000 updated or inserted into our database.
+\textbf{Exercise:} Write the trigger(s) to maintain a log table containing information about the changes of employees' salaries.
 
-\textbf{Hint:}
-\begin{itemize}
-    \item Create a LOG table (SSN, CONTENT, DATE)
-    \item E.g., ('123456789', 'SALARY UPDATE FROM 30000 TO 70000', '06-NOV-2021')
-\end{itemize}
+\textbf{Log table structure:} (User, Date, ESSN, Old\_Salary, New\_Salary)
 
 \textbf{Solution:}
 
 \begin{lstlisting}
--- Create the LOG table
+-- Create the log table if it doesn't exist
 DROP TABLE IF EXISTS SALARY_LOG;
 CREATE TABLE SALARY_LOG (
-    Log_id INT AUTO_INCREMENT PRIMARY KEY,
-    SSN CHAR(9),
-    Content VARCHAR(255),
-    Log_Date DATE
+    Log_ID INT AUTO_INCREMENT PRIMARY KEY,
+    User_Name VARCHAR(100),
+    Change_Date DATETIME,
+    ESSN CHAR(9),
+    Old_Salary DECIMAL(10, 2),
+    New_Salary DECIMAL(10, 2)
 );
 
--- Trigger for INSERT
+-- Trigger for INSERT: Log initial salary when employee is created
 DROP TRIGGER IF EXISTS trg_log_salary_insert;
 DELIMITER //
 CREATE TRIGGER trg_log_salary_insert
 AFTER INSERT ON EMPLOYEE
 FOR EACH ROW
 BEGIN
-    IF NEW.Salary > 50000 THEN
-        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
-        VALUES (NEW.Ssn, CONCAT('SALARY INSERT: ', NEW.Salary), CURDATE());
-    END IF;
+    INSERT INTO SALARY_LOG (User_Name, Change_Date, ESSN, Old_Salary, New_Salary)
+    VALUES (CURRENT_USER(), NOW(), NEW.Ssn, NULL, NEW.Salary);
 END //
 DELIMITER ;
 
--- Trigger for UPDATE
+-- Trigger for UPDATE: Log salary changes
 DROP TRIGGER IF EXISTS trg_log_salary_update;
 DELIMITER //
 CREATE TRIGGER trg_log_salary_update
 AFTER UPDATE ON EMPLOYEE
 FOR EACH ROW
 BEGIN
-    IF NEW.Salary > 50000 THEN
-        INSERT INTO SALARY_LOG (SSN, Content, Log_Date)
-        VALUES (NEW.Ssn, CONCAT('SALARY UPDATE FROM ', OLD.Salary, ' TO ', NEW.Salary), CURDATE());
+    IF OLD.Salary != NEW.Salary THEN
+        INSERT INTO SALARY_LOG (User_Name, Change_Date, ESSN, Old_Salary, New_Salary)
+        VALUES (CURRENT_USER(), NOW(), NEW.Ssn, OLD.Salary, NEW.Salary);
     END IF;
 END //
 DELIMITER ;
@@ -53,39 +49,27 @@ DELIMITER ;
 
 \subsubsection*{Test Validation}
 \begin{lstlisting}
--- Test INSERT with high salary (> 50000)
-INSERT INTO EMPLOYEE VALUES ('High', 'H', 'Earner', '888888888', '1980-01-01', 
-                             '123 St', 'M', 55000, NULL, 1);
+-- Test INSERT: Add new employee
+INSERT INTO EMPLOYEE VALUES ('New', 'N', 'Employee', '999999999', '1990-01-01', 
+                             '123 St', 'M', 28000, '333445555', 5);
 
 -- Check the log
-SELECT * FROM SALARY_LOG;
+SELECT * FROM SALARY_LOG WHERE ESSN = '999999999';
 \end{lstlisting}
 
 \textbf{Expected Output:}
 \begin{center}
-\begin{tabular}{|c|l|l|l|}
-\hline
-\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
-\hline
-1 & 888888888 & SALARY INSERT: 55000.00 & 2024-12-05 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.95\textwidth]{Images/ex1/triggers/te1.png}
 \end{center}
 
 \begin{lstlisting}
--- Test UPDATE with high salary
-UPDATE EMPLOYEE SET Salary = 60000 WHERE Ssn = '888888888';
-SELECT * FROM SALARY_LOG ORDER BY Log_id DESC LIMIT 1;
+-- Test UPDATE: Change salary
+UPDATE EMPLOYEE SET Salary = 30000 WHERE Ssn = '999999999';
+SELECT * FROM SALARY_LOG WHERE ESSN = '999999999';
 \end{lstlisting}
 
 \textbf{Expected Output:}
 \begin{center}
-\footnotesize
-\begin{tabular}{|c|l|l|l|}
-\hline
-\textbf{Log\_id} & \textbf{SSN} & \textbf{Content} & \textbf{Log\_Date} \\
-\hline
-2 & 888888888 & SALARY UPDATE: 55000 TO 60000 & 2024-12-05 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.95\textwidth]{Images/ex1/triggers/te2.png}
 \end{center}
+

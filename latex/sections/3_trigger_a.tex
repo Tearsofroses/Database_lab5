@@ -27,10 +27,30 @@ BEFORE INSERT ON EMPLOYEE
 FOR EACH ROW
 BEGIN
     DECLARE supervisor_bdate DATE;
+    
     IF NEW.Super_ssn IS NOT NULL THEN
-        SELECT Bdate INTO supervisor_bdate 
-        FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
-        IF supervisor_bdate IS NOT NULL AND NEW.Bdate <= supervisor_bdate THEN
+        SELECT Bdate INTO supervisor_bdate FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        
+        IF supervisor_bdate IS NOT NULL AND supervisor_bdate > NEW.Bdate THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Supervisor must be older than the employee.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_supervisor_older_update;
+DELIMITER //
+CREATE TRIGGER trg_supervisor_older_update
+BEFORE UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE supervisor_bdate DATE;
+    
+    IF NEW.Super_ssn IS NOT NULL THEN
+        SELECT Bdate INTO supervisor_bdate FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        
+        IF supervisor_bdate IS NOT NULL AND supervisor_bdate > NEW.Bdate THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Error: Supervisor must be older than the employee.';
         END IF;
@@ -59,19 +79,39 @@ INSERT INTO EMPLOYEE VALUES
 \textbf{Requirement:} The salary of an employee cannot be greater than the salary of his/her supervisor.
 
 \begin{lstlisting}
-DROP TRIGGER IF EXISTS trg_salary_less_than_supervisor_insert;
+DROP TRIGGER IF EXISTS trg_salary_less_than_supervisor;
 DELIMITER //
-CREATE TRIGGER trg_salary_less_than_supervisor_insert
+CREATE TRIGGER trg_salary_less_than_supervisor
 BEFORE INSERT ON EMPLOYEE
 FOR EACH ROW
 BEGIN
     DECLARE supervisor_salary DECIMAL(10, 2);
+    
     IF NEW.Super_ssn IS NOT NULL THEN
-        SELECT Salary INTO supervisor_salary 
-        FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
-        IF supervisor_salary IS NOT NULL AND NEW.Salary > supervisor_salary THEN
+        SELECT Salary INTO supervisor_salary FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        
+        IF supervisor_salary IS NOT NULL AND NEW.Salary >= supervisor_salary THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Error: Employee salary cannot be greater than supervisor salary.';
+            SET MESSAGE_TEXT = 'Error: Employee salary must be less than supervisor salary.';
+        END IF;
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_salary_less_than_supervisor_update;
+DELIMITER //
+CREATE TRIGGER trg_salary_less_than_supervisor_update
+BEFORE UPDATE ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE supervisor_salary DECIMAL(10, 2);
+    
+    IF NEW.Super_ssn IS NOT NULL THEN
+        SELECT Salary INTO supervisor_salary FROM EMPLOYEE WHERE Ssn = NEW.Super_ssn;
+        
+        IF supervisor_salary IS NOT NULL AND NEW.Salary >= supervisor_salary THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Employee salary must be less than supervisor salary.';
         END IF;
     END IF;
 END //
@@ -104,7 +144,7 @@ FOR EACH ROW
 BEGIN
     IF NEW.Salary < OLD.Salary THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Error: Employee salary can only increase, not decrease.';
+        SET MESSAGE_TEXT = 'Error: Salary can only increase, not decrease.';
     END IF;
 END //
 DELIMITER ;
@@ -132,11 +172,9 @@ CREATE TRIGGER trg_salary_increase_max_20_percent
 BEFORE UPDATE ON EMPLOYEE
 FOR EACH ROW
 BEGIN
-    IF NEW.Salary > OLD.Salary THEN
-        IF (NEW.Salary - OLD.Salary) > (OLD.Salary * 0.20) THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Error: Salary increase cannot exceed 20% of current salary.';
-        END IF;
+    IF NEW.Salary > OLD.Salary * 1.20 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Salary increase cannot exceed 20%.';
     END IF;
 END //
 DELIMITER ;
@@ -158,17 +196,19 @@ UPDATE EMPLOYEE SET Salary = 45000 WHERE Ssn = '123456789';
 \textbf{Requirement:} An employee works on at most 4 projects.
 
 \begin{lstlisting}
-DROP TRIGGER IF EXISTS trg_max_4_projects_insert;
+DROP TRIGGER IF EXISTS trg_max_4_projects;
 DELIMITER //
-CREATE TRIGGER trg_max_4_projects_insert
+CREATE TRIGGER trg_max_4_projects
 BEFORE INSERT ON WORKS_ON
 FOR EACH ROW
 BEGIN
     DECLARE project_count INT;
+    
     SELECT COUNT(*) INTO project_count FROM WORKS_ON WHERE Essn = NEW.Essn;
+    
     IF project_count >= 4 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Error: An employee can work on at most 4 projects.';
+        SET MESSAGE_TEXT = 'Error: Employee cannot work on more than 4 projects.';
     END IF;
 END //
 DELIMITER ;
@@ -196,18 +236,37 @@ INSERT INTO WORKS_ON VALUES ('666884444', 1, 10);
 \textbf{Requirement:} The maximum number of hours an employee can work on all projects per week is 56.
 
 \begin{lstlisting}
-DROP TRIGGER IF EXISTS trg_max_56_hours_insert;
+DROP TRIGGER IF EXISTS trg_max_56_hours;
 DELIMITER //
-CREATE TRIGGER trg_max_56_hours_insert
+CREATE TRIGGER trg_max_56_hours
 BEFORE INSERT ON WORKS_ON
 FOR EACH ROW
 BEGIN
     DECLARE total_hours DECIMAL(5, 1);
-    SELECT IFNULL(SUM(Hours), 0) INTO total_hours 
-    FROM WORKS_ON WHERE Essn = NEW.Essn;
+    
+    SELECT IFNULL(SUM(Hours), 0) INTO total_hours FROM WORKS_ON WHERE Essn = NEW.Essn;
+    
     IF (total_hours + IFNULL(NEW.Hours, 0)) > 56 THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Error: Total hours per week cannot exceed 56.';
+        SET MESSAGE_TEXT = 'Error: Total weekly hours cannot exceed 56.';
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_max_56_hours_update;
+DELIMITER //
+CREATE TRIGGER trg_max_56_hours_update
+BEFORE UPDATE ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE total_hours DECIMAL(5, 1);
+    
+    SELECT IFNULL(SUM(Hours), 0) INTO total_hours FROM WORKS_ON 
+    WHERE Essn = NEW.Essn AND Pno != OLD.Pno;
+    
+    IF (total_hours + IFNULL(NEW.Hours, 0)) > 56 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Total weekly hours cannot exceed 56.';
     END IF;
 END //
 DELIMITER ;
@@ -296,23 +355,26 @@ INSERT INTO PROJECT VALUES ('BadProject', 100, 'New York', 5);
 \textbf{Requirement:} The salary of a department manager must be higher than the other employees working for that department.
 
 \begin{lstlisting}
-DROP TRIGGER IF EXISTS trg_manager_salary_highest_insert;
+DROP TRIGGER IF EXISTS trg_manager_salary_highest;
 DELIMITER //
-CREATE TRIGGER trg_manager_salary_highest_insert
-BEFORE INSERT ON EMPLOYEE
+CREATE TRIGGER trg_manager_salary_highest
+BEFORE UPDATE ON EMPLOYEE
 FOR EACH ROW
 BEGIN
-    DECLARE manager_salary DECIMAL(10, 2);
-    DECLARE manager_ssn CHAR(9);
+    DECLARE is_manager INT;
+    DECLARE max_other_salary DECIMAL(10, 2);
     
-    IF NEW.Dno IS NOT NULL THEN
-        SELECT Mgr_ssn INTO manager_ssn FROM DEPARTMENT WHERE Dnumber = NEW.Dno;
-        IF manager_ssn IS NOT NULL AND manager_ssn != NEW.Ssn THEN
-            SELECT Salary INTO manager_salary FROM EMPLOYEE WHERE Ssn = manager_ssn;
-            IF manager_salary IS NOT NULL AND NEW.Salary >= manager_salary THEN
-                SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'Error: Employee salary cannot be equal or greater than department manager salary.';
-            END IF;
+    SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Ssn;
+    
+    IF is_manager > 0 THEN
+        SELECT MAX(Salary) INTO max_other_salary 
+        FROM EMPLOYEE e
+        JOIN DEPARTMENT d ON d.Dnumber = e.Dno
+        WHERE d.Mgr_ssn = NEW.Ssn AND e.Ssn != NEW.Ssn;
+        
+        IF max_other_salary IS NOT NULL AND NEW.Salary <= max_other_salary THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Manager salary must be highest in the department.';
         END IF;
     END IF;
 END //
@@ -341,19 +403,36 @@ INSERT INTO EMPLOYEE VALUES
 \textbf{Requirement:} Only department managers can work less than 5 hours on a project.
 
 \begin{lstlisting}
-DROP TRIGGER IF EXISTS trg_min_5_hours_non_manager_insert;
+DROP TRIGGER IF EXISTS trg_min_5_hours_non_manager;
 DELIMITER //
-CREATE TRIGGER trg_min_5_hours_non_manager_insert
+CREATE TRIGGER trg_min_5_hours_non_manager
 BEFORE INSERT ON WORKS_ON
 FOR EACH ROW
 BEGIN
     DECLARE is_manager INT;
-    IF NEW.Hours IS NOT NULL AND NEW.Hours < 5 THEN
-        SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Essn;
-        IF is_manager = 0 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Error: Only department managers can work less than 5 hours on a project.';
-        END IF;
+    
+    SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Essn;
+    
+    IF is_manager = 0 AND (NEW.Hours IS NULL OR NEW.Hours < 5) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Non-manager employee must work at least 5 hours on a project.';
+    END IF;
+END //
+DELIMITER ;
+
+DROP TRIGGER IF EXISTS trg_min_5_hours_non_manager_update;
+DELIMITER //
+CREATE TRIGGER trg_min_5_hours_non_manager_update
+BEFORE UPDATE ON WORKS_ON
+FOR EACH ROW
+BEGIN
+    DECLARE is_manager INT;
+    
+    SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Essn;
+    
+    IF is_manager = 0 AND (NEW.Hours IS NULL OR NEW.Hours < 5) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Non-manager employee must work at least 5 hours on a project.';
     END IF;
 END //
 DELIMITER ;

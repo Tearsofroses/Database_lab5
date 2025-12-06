@@ -5,29 +5,29 @@
 \contentsline {subsection}{\numberline {2.2}View (b): Research Department Employees and Supervisors}{5}{subsection.2.2}%
 \contentsline {subsection}{\numberline {2.3}View (c): Project Information}{5}{subsection.2.3}%
 \contentsline {subsection}{\numberline {2.4}View (d): Projects with More Than Two Employees}{6}{subsection.2.4}%
-\contentsline {subsection}{\numberline {2.5}View (e): Employees with More Than 2 Dependents}{6}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.5}View (e): Employees with More Than 2 Dependents}{7}{subsection.2.5}%
 \contentsline {subsection}{\numberline {2.6}View (f): July Birthday Employees}{7}{subsection.2.6}%
 \contentsline {subsection}{\numberline {2.7}View (g): Young Dependents (Under 18)}{8}{subsection.2.7}%
 \contentsline {section}{\numberline {3}Trigger (a) - Business Rules}{9}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Trigger (a.1): Supervisor Must Be Older}{9}{subsection.3.1}%
 \contentsline {subsection}{\numberline {3.2}Trigger (a.2): Salary Cannot Exceed Supervisor's Salary}{10}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Trigger (a.3): Salary Can Only Increase}{11}{subsection.3.3}%
-\contentsline {subsection}{\numberline {3.4}Trigger (a.4): Maximum 20\% Salary Increase}{11}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.4}Trigger (a.4): Maximum 20\% Salary Increase}{12}{subsection.3.4}%
 \contentsline {subsection}{\numberline {3.5}Trigger (a.5): Maximum 4 Projects Per Employee}{12}{subsection.3.5}%
-\contentsline {subsection}{\numberline {3.6}Trigger (a.6): Maximum 56 Hours Per Week}{12}{subsection.3.6}%
-\contentsline {subsection}{\numberline {3.7}Trigger (a.7): Project Location Must Match Department Location}{13}{subsection.3.7}%
-\contentsline {subsection}{\numberline {3.8}Trigger (a.8): Manager Salary Must Be Highest}{14}{subsection.3.8}%
-\contentsline {subsection}{\numberline {3.9}Trigger (a.9): Only Managers Can Work Less Than 5 Hours}{15}{subsection.3.9}%
-\contentsline {section}{\numberline {4}Task (b) - Num\_of\_Emp Derived Attribute}{17}{section.4}%
-\contentsline {section}{\numberline {5}Function (c) - Get Total Projects}{19}{section.5}%
-\contentsline {section}{\numberline {6}Procedure (d) - Print Employee Details}{21}{section.6}%
-\contentsline {section}{\numberline {7}Trigger (e) - Salary Log}{23}{section.7}%
-\contentsline {section}{\numberline {8}Procedure (f) - Employee Salary Levels}{25}{section.8}%
-\contentsline {section}{\numberline {9}Exercise 2 - Hotel Database Constraints}{27}{section.9}%
-\contentsline {subsection}{\numberline {9.1}Constraint (a) - Room Price}{27}{subsection.9.1}%
-\contentsline {subsection}{\numberline {9.2}Constraint (b) - Booking Validity}{28}{subsection.9.2}%
-\contentsline {subsection}{\numberline {9.3}Constraint (c) - No Double Booking}{28}{subsection.9.3}%
-\contentsline {subsection}{\numberline {9.4}Constraint (d) - Maximum Grosvenor Bookings}{29}{subsection.9.4}%
-\contentsline {subsection}{\numberline {9.5}Constraint (e) - London Room Increase}{30}{subsection.9.5}%
-\contentsline {subsection}{\numberline {9.6}Constraint (f) - No Direct Deletes}{31}{subsection.9.6}%
-\contentsline {section}{\numberline {10}Conclusion}{34}{section.10}%
+\contentsline {subsection}{\numberline {3.6}Trigger (a.6): Maximum 56 Hours Per Week}{13}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}Trigger (a.7): Project Location Must Match Department Location}{14}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}Trigger (a.8): Manager Salary Must Be Highest}{15}{subsection.3.8}%
+\contentsline {subsection}{\numberline {3.9}Trigger (a.9): Only Managers Can Work Less Than 5 Hours}{16}{subsection.3.9}%
+\contentsline {section}{\numberline {4}Task (b) - Num\_of\_Emp Derived Attribute}{18}{section.4}%
+\contentsline {section}{\numberline {5}Function (c) - Get Total Projects}{20}{section.5}%
+\contentsline {section}{\numberline {6}Procedure (d) - Print Employee Details}{22}{section.6}%
+\contentsline {section}{\numberline {7}Trigger (e) - Salary Log}{24}{section.7}%
+\contentsline {section}{\numberline {8}Procedure (f) - Employee Salary Levels}{26}{section.8}%
+\contentsline {section}{\numberline {9}Exercise 2 - Hotel Database Constraints}{28}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Constraint (a) - Room Price}{28}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Constraint (b) - Booking Validity}{29}{subsection.9.2}%
+\contentsline {subsection}{\numberline {9.3}Constraint (c) - No Double Booking}{29}{subsection.9.3}%
+\contentsline {subsection}{\numberline {9.4}Constraint (d) - Maximum Grosvenor Bookings}{30}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Constraint (e) - London Room Increase}{31}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Constraint (f) - No Direct Deletes}{32}{subsection.9.6}%
+\contentsline {section}{\numberline {10}Conclusion}{35}{section.10}%

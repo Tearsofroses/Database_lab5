@@ -51,11 +51,21 @@ CREATE TRIGGER trg_update_num_emp_update
 AFTER UPDATE ON EMPLOYEE
 FOR EACH ROW
 BEGIN
-    IF OLD.Dno IS NOT NULL AND (NEW.Dno IS NULL OR OLD.Dno != NEW.Dno) THEN
-        UPDATE DEPARTMENT SET Num_of_Emp = Num_of_Emp - 1 WHERE Dnumber = OLD.Dno;
-    END IF;
-    IF NEW.Dno IS NOT NULL AND (OLD.Dno IS NULL OR OLD.Dno != NEW.Dno) THEN
-        UPDATE DEPARTMENT SET Num_of_Emp = Num_of_Emp + 1 WHERE Dnumber = NEW.Dno;
+    -- Check if department changed
+    IF OLD.Dno != NEW.Dno OR (OLD.Dno IS NULL AND NEW.Dno IS NOT NULL) OR (OLD.Dno IS NOT NULL AND NEW.Dno IS NULL) THEN
+        -- Decrement old department
+        IF OLD.Dno IS NOT NULL THEN
+            UPDATE DEPARTMENT 
+            SET Num_of_Emp = Num_of_Emp - 1
+            WHERE Dnumber = OLD.Dno;
+        END IF;
+        
+        -- Increment new department
+        IF NEW.Dno IS NOT NULL THEN
+            UPDATE DEPARTMENT 
+            SET Num_of_Emp = Num_of_Emp + 1
+            WHERE Dnumber = NEW.Dno;
+        END IF;
     END IF;
 END //
 DELIMITER ;
@@ -69,15 +79,7 @@ SELECT Dnumber, Dname, Num_of_Emp FROM DEPARTMENT;
 
 \textbf{Expected Output:}
 \begin{center}
-\begin{tabular}{|c|l|c|}
-\hline
-\textbf{Dnumber} & \textbf{Dname} & \textbf{Num\_of\_Emp} \\
-\hline
-1 & Headquarters & 1 \\
-4 & Administration & 2 \\
-5 & Research & 5 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.6\textwidth]{Images/ex1/triggers/tb1_1.png}
 \end{center}
 
 \begin{lstlisting}

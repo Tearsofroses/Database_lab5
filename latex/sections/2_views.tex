@@ -38,15 +38,7 @@ SELECT * FROM DepartmentManagerInfo;
 
 \textbf{Expected Output:}
 \begin{center}
-\begin{tabular}{|l|l|r|}
-\hline
-\textbf{Department\_Name} & \textbf{Manager\_Name} & \textbf{Manager\_Salary} \\
-\hline
-Research & Franklin T Wong & 40000.00 \\
-Administration & Jennifer S Wallace & 43000.00 \\
-Headquarters & James E Borg & 55000.00 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/a.png}
 \end{center}
 
 \subsection{View (b): Research Department Employees and Supervisors}
@@ -76,17 +68,7 @@ SELECT * FROM ResearchEmployeeSupervisor;
 
 \textbf{Expected Output:}
 \begin{center}
-\begin{tabular}{|l|l|r|}
-\hline
-\textbf{Employee\_Name} & \textbf{Supervisor\_Name} & \textbf{Employee\_Salary} \\
-\hline
-John B Smith & Franklin T Wong & 30000.00 \\
-Franklin T Wong & James E Borg & 40000.00 \\
-Ramesh K Narayan & Franklin T Wong & 38000.00 \\
-Joyce A English & Franklin T Wong & 25000.00 \\
-Ahmad V Jabbar & Franklin T Wong & 25000.00 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/b.png}
 \end{center}
 
 \subsection{View (c): Project Information}
@@ -117,19 +99,7 @@ SELECT * FROM ProjectInfo;
 
 \textbf{Expected Output:}
 \begin{center}
-\small
-\begin{tabular}{|l|l|c|r|}
-\hline
-\textbf{Project\_Name} & \textbf{Ctrl\_Dept} & \textbf{Num\_Emp} & \textbf{Total\_Hours} \\
-\hline
-ProductX & Research & 2 & 52.5 \\
-ProductY & Research & 3 & 37.5 \\
-ProductZ & Research & 2 & 50.0 \\
-Computerization & Administration & 3 & 55.0 \\
-Reorganization & Headquarters & 3 & 25.0 \\
-Newbenefits & Administration & 3 & 55.0 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/c.png}
 \end{center}
 
 \subsection{View (d): Projects with More Than Two Employees}
@@ -161,17 +131,7 @@ SELECT * FROM ProjectInfoMoreThanTwo;
 
 \textbf{Expected Output:}
 \begin{center}
-\small
-\begin{tabular}{|l|l|c|r|}
-\hline
-\textbf{Project\_Name} & \textbf{Ctrl\_Dept} & \textbf{Num\_Emp} & \textbf{Total\_Hours} \\
-\hline
-ProductY & Research & 3 & 37.5 \\
-Computerization & Administration & 3 & 55.0 \\
-Reorganization & Headquarters & 3 & 25.0 \\
-Newbenefits & Administration & 3 & 55.0 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/d.png}
 \end{center}
 
 \subsection{View (e): Employees with More Than 2 Dependents}
@@ -201,14 +161,7 @@ SELECT * FROM EmployeesWithManyDependents;
 
 \textbf{Expected Output:}
 \begin{center}
-\begin{tabular}{|l|l|c|}
-\hline
-\textbf{SSN} & \textbf{Full\_Name} & \textbf{Number\_of\_Dependents} \\
-\hline
-333445555 & Franklin T Wong & 3 \\
-123456789 & John B Smith & 3 \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/e.png}
 \end{center}
 
 \subsection{View (f): July Birthday Employees}
@@ -236,14 +189,7 @@ SELECT * FROM JulyBirthdayEmployees;
 
 \textbf{Expected Output:}
 \begin{center}
-\begin{tabular}{|l|l|c|}
-\hline
-\textbf{Full\_Name} & \textbf{Date\_of\_Birth} & \textbf{Gender} \\
-\hline
-Joyce A English & 1972-07-31 & F \\
-Alicia J Zelaya & 1968-07-19 & F \\
-\hline
-\end{tabular}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/f.png}
 \end{center}
 
 \subsection{View (g): Young Dependents (Under 18)}
@@ -270,4 +216,6 @@ SELECT * FROM YoungDependents;
 \end{lstlisting}
 
 \textbf{Expected Output:}
-Empty set (no dependents under 18 in current data).
+\begin{center}
+\includegraphics[width=0.8\textwidth]{Images/ex1/views/g.png}
+\end{center}
