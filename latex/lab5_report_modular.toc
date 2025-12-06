@@ -27,8 +27,9 @@
 \contentsline {subsection}{\numberline {9.1}Constraint (a) - Double Room Price Minimum}{33}{subsection.9.1}%
 \contentsline {subsection}{\numberline {9.2}Constraint (d) - Maximum Grosvenor Bookings}{34}{subsection.9.2}%
 \contentsline {subsection}{\numberline {9.3}Constraint (e) - London Room Increase}{35}{subsection.9.3}%
-\contentsline {subsection}{\numberline {9.4}Constraint (c) - No Overlapping Bookings}{36}{subsection.9.4}%
-\contentsline {subsection}{\numberline {9.5}Constraint (d) - Adult Capacity Validation}{37}{subsection.9.5}%
-\contentsline {subsection}{\numberline {9.6}Constraint (e) - Automatic TotalAmount Calculation}{38}{subsection.9.6}%
-\contentsline {subsection}{\numberline {9.7}Constraint (f) - INSTEAD OF Trigger for View}{39}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.4}Constraint (b) - Double Room Pricing Hierarchy}{36}{subsection.9.4}%
+\contentsline {subsection}{\numberline {9.5}Constraint (c) - No Overlapping Bookings}{37}{subsection.9.5}%
+\contentsline {subsection}{\numberline {9.6}Constraint (d) - Adult Capacity Validation}{38}{subsection.9.6}%
+\contentsline {subsection}{\numberline {9.7}Constraint (e) - Automatic TotalAmount Calculation}{38}{subsection.9.7}%
+\contentsline {subsection}{\numberline {9.8}Constraint (f) - INSTEAD OF Trigger for View}{40}{subsection.9.8}%
 \contentsline {section}{\numberline {10}Conclusion}{43}{section.10}%

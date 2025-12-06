@@ -23,7 +23,8 @@ CREATE PROCEDURE InsertIntoLondonHotelRoom(
     IN p_hotelName VARCHAR(50),
     IN p_roomNo INT,
     IN p_type VARCHAR(20),
-    IN p_price DECIMAL(10, 2)
+    IN p_price DECIMAL(10, 2),
+    IN p_numAdultMax INT
 )
 BEGIN
     DECLARE hotel_exists INT;
@@ -41,7 +42,7 @@ BEGIN
     END IF;
     
     -- Insert room
-    INSERT INTO Room (roomNo, hotelNo, type, price) 
-    VALUES (p_roomNo, p_hotelNo, p_type, p_price);
+    INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+    VALUES (p_roomNo, p_hotelNo, p_type, p_price, p_numAdultMax);
 END //
 DELIMITER ;

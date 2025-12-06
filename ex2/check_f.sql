@@ -15,13 +15,13 @@ WHERE h.city = 'London';
 
 -- Test 1: Insert into view using stored procedure - New hotel and room
 SELECT '=== Test 1: Insert new hotel (99) and room (901) ===' AS Test;
-CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 901, 'single', 110);
+CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 901, 'single', 110, 1);
 SELECT * FROM Hotel WHERE hotelNo = 99;
 SELECT * FROM Room WHERE hotelNo = 99 AND roomNo = 901;
 
 -- Test 2: Insert into view - Existing hotel, new room
 SELECT '=== Test 2: Insert room (902) to existing hotel (99) ===' AS Test;
-CALL InsertIntoLondonHotelRoom(99, 'Updated London Hotel', 902, 'double', 180);
+CALL InsertIntoLondonHotelRoom(99, 'Updated London Hotel', 902, 'double', 180, 2);
 SELECT * FROM Hotel WHERE hotelNo = 99;
 SELECT * FROM Room WHERE hotelNo = 99 ORDER BY roomNo;
 
@@ -31,7 +31,7 @@ SELECT * FROM LondonHotelRoom WHERE hotelNo = 99;
 
 -- Test 4: Insert another room to the same hotel
 SELECT '=== Test 4: Insert third room (903) ===' AS Test;
-CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 903, 'suite', 250);
+CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 903, 'suite', 250, 4);
 SELECT * FROM LondonHotelRoom WHERE hotelNo = 99 ORDER BY roomNo;
 
 -- Cleanup

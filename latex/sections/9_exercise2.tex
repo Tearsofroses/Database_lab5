@@ -38,35 +38,46 @@ CHECK (type != 'double' OR price > 100);
 
 \subsubsection*{Test Validation}
 \begin{lstlisting}
--- Test 1: Valid double room with price > 100
+-- Display current state
+SELECT '=== Current Room Data ===' AS Info;
+SELECT * FROM Room;
+
+-- Test 1: Valid INSERT - Double room with price > 100
+SELECT '=== Test 1: Valid double room (price = 150) ===' AS Test;
 INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
 VALUES (999, 1, 'double', 150, 2);
--- Result: Success
+SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
 
--- Test 2: Invalid double room with price < 100
+-- Test 2: Invalid INSERT - Double room with price < 100
+SELECT '=== Test 2: Invalid double room (price = 80) ===' AS Test;
 INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
 VALUES (998, 1, 'double', 80, 2);
--- Result: Error - Check constraint violation
+-- Expected: Error - Check constraint violation
 
--- Test 3: Invalid double room with price = 100
+-- Test 3: Invalid INSERT - Double room with price = 100
+SELECT '=== Test 3: Invalid double room (price = 100) ===' AS Test;
 INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
 VALUES (997, 1, 'double', 100, 2);
--- Result: Error - Must be GREATER than 100
+-- Expected: Error - Check constraint violation (must be GREATER than 100)
 
--- Test 4: Valid single room with any price
+-- Test 4: Valid INSERT - Single room with price < 100
+SELECT '=== Test 4: Valid single room (price = 50) ===' AS Test;
 INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
 VALUES (996, 1, 'single', 50, 1);
--- Result: Success
-\end{lstlisting}
+SELECT * FROM Room WHERE roomNo = 996 AND hotelNo = 1;
 
-\begin{lstlisting}
--- Test 1: Try overlapping booking (should fail)
-INSERT INTO Booking VALUES 
-    (1, 2, '2024-04-12', '2024-04-18', 101);
+-- Test 5: Valid UPDATE - Change double room price to valid value
+SELECT '=== Test 5: Valid UPDATE - double room price 150 to 200 ===' AS Test;
+UPDATE Room SET price = 200 WHERE roomNo = 999 AND hotelNo = 1;
+SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
 
--- Test 2: Non-overlapping booking (should succeed)
-INSERT INTO Booking VALUES 
-    (1, 2, '2024-04-20', '2024-04-25', 101);
+-- Test 6: Invalid UPDATE - Change double room price to invalid value
+SELECT '=== Test 6: Invalid UPDATE - double room price to 90 ===' AS Test;
+UPDATE Room SET price = 90 WHERE roomNo = 999 AND hotelNo = 1;
+-- Expected: Error - Check constraint violation
+
+-- Cleanup
+DELETE FROM Room WHERE roomNo IN (999, 996) AND hotelNo = 1;
 \end{lstlisting}
 
 \textbf{Expected Results:}
@@ -76,79 +87,16 @@ INSERT INTO Booking VALUES
 \hline
 \textbf{Test} & \textbf{Action} & \textbf{Result} \\
 \hline
-Setup & INSERT Apr 10-15, Room 101 & Row inserted \\
-Test 1 & INSERT Apr 12-18, Room 101 & Trigger error - overlap \\
-Test 2 & INSERT Apr 20-25, Room 101 & Row inserted \\
+Test 1 & INSERT double room price 150 & Success \\
+Test 2 & INSERT double room price 80 & Error - constraint violation \\
+Test 3 & INSERT double room price 100 & Error - must be $>$ 100 \\
+Test 4 & INSERT single room price 50 & Success \\
+Test 5 & UPDATE double room 150 to 200 & Success \\
+Test 6 & UPDATE double room to 90 & Error - constraint violation \\
 \hline
 \end{tabular}
 \end{center}
 
-% --------------------
-\subsection{Constraint (d) - Maximum Grosvenor Bookings}
-% --------------------
-
-\textbf{Requirement:} No guest can make more than 10 bookings for the same hotel with name `Grosvenor'.
-
-\textbf{Solution:}
-
-\begin{lstlisting}
--- Trigger (required for counting bookings per guest per hotel)
-DELIMITER //
-CREATE TRIGGER trg_max_grosvenor_bookings
-BEFORE INSERT ON Booking
-FOR EACH ROW
-BEGIN
-    DECLARE booking_count INT;
-    DECLARE hotel_name VARCHAR(50);
-    
-    SELECT hotelName INTO hotel_name
-    FROM Hotel
-    WHERE hotelNo = NEW.hotelNo;
-    
-    IF hotel_name = 'Grosvenor' THEN
-        SELECT COUNT(*) INTO booking_count
-        FROM Booking
-        WHERE guestNo = NEW.guestNo
-          AND hotelNo = NEW.hotelNo;
-        
-        IF booking_count >= 10 THEN
-            SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Guest cannot make more than 10 bookings for Grosvenor hotel';
-        END IF;
-    END IF;
-END //
-DELIMITER ;
-\end{lstlisting}
-
-\subsubsection*{Test Validation}
-\begin{lstlisting}
--- Setup: Insert Grosvenor hotel
-INSERT INTO Hotel VALUES (10, 'Grosvenor', 'London');
-
--- Insert 10 bookings for guest 1 at Grosvenor
--- (simplified - in practice, dates would vary)
--- After 10 bookings exist...
-
--- Test: Try to insert 11th booking (should fail)
-INSERT INTO Booking VALUES 
-    (10, 1, '2024-12-01', '2024-12-05', 101);
-\end{lstlisting}
-
-\textbf{Expected Result:} After 10 existing bookings, the 11th booking attempt will fail with the error message ``Guest cannot make more than 10 bookings for Grosvenor hotel''.
-
-% --------------------
-\subsection{Constraint (e) - London Room Increase}
-% --------------------
-
-\textbf{Requirement:} The price of rooms at hotels in London cannot be increased by more than 10\%.
-
-\textbf{Solution:}
-
-\begin{lstlisting}
--- Trigger (required for comparing old and new values on UPDATE)
-DELIMITER //
-CREATE TRIGGER trg_london_price_increase
-BEFORE UPDATE ON Room
 % --------------------
 \subsection{Constraint (b) - Double Room Pricing Hierarchy}
 % --------------------
@@ -203,6 +151,69 @@ DELIMITER ;
 
 \textbf{Explanation:} Triggers are necessary because this constraint requires comparing the new room price with existing prices in the database, which cannot be done with simple CHECK constraints.
 
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Display current state
+SELECT '=== Current Room Data for Hotel 1 ===' AS Info;
+SELECT * FROM Room WHERE hotelNo = 1 ORDER BY type, price;
+
+-- Test 1: Valid INSERT - Double room with price > highest single room
+SELECT '=== Test 1: Valid double room (price = 200, max single = 80) ===' AS Test;
+-- First, verify the highest single room price in hotel 1
+SELECT MAX(price) AS Max_Single_Price FROM Room WHERE hotelNo = 1 AND type = 'single';
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (999, 1, 'double', 200, 2);
+SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
+
+-- Test 2: Invalid INSERT - Double room with price <= highest single room
+SELECT '=== Test 2: Invalid double room (price = 70, max single = 80) ===' AS Test;
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (998, 1, 'double', 70, 2);
+-- Expected: Error - Double room price must be greater than highest single
+
+-- Test 3: Invalid INSERT - Double room with price = highest single room
+SELECT '=== Test 3: Invalid double room (price = 80, max single = 80) ===' AS Test;
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (997, 1, 'double', 80, 2);
+-- Expected: Error - Double room price must be greater than highest single
+
+-- Test 4: Valid INSERT - Single room (no constraint applies)
+SELECT '=== Test 4: Valid single room (price = 90) ===' AS Test;
+INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+VALUES (996, 1, 'single', 90, 1);
+SELECT * FROM Room WHERE roomNo = 996 AND hotelNo = 1;
+
+-- Test 5: Now Test 1 double room should fail (new max single = 90)
+SELECT '=== Test 5: Invalid UPDATE - double room price to 85 (max single now = 90) ===' AS Test;
+UPDATE Room SET price = 85 WHERE roomNo = 999 AND hotelNo = 1;
+-- Expected: Error - Double room price must be greater than new max single
+
+-- Test 6: Valid UPDATE - Double room price > new max single
+SELECT '=== Test 6: Valid UPDATE - double room price to 120 ===' AS Test;
+UPDATE Room SET price = 120 WHERE roomNo = 999 AND hotelNo = 1;
+SELECT * FROM Room WHERE roomNo = 999 AND hotelNo = 1;
+
+-- Cleanup
+DELETE FROM Room WHERE roomNo IN (999, 996) AND hotelNo = 1;
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Test 1 & INSERT double room price 200 & Success (200 $>$ 80) \\
+Test 2 & INSERT double room price 70 & Error - price $\leq$ max single \\
+Test 3 & INSERT double room price 80 & Error - price $\leq$ max single \\
+Test 4 & INSERT single room price 90 & Success \\
+Test 5 & UPDATE double room to 85 & Error - 85 $\leq$ 90 \\
+Test 6 & UPDATE double room to 120 & Success (120 $>$ 90) \\
+\hline
+\end{tabular}
+\end{center}
+
 % --------------------
 \subsection{Constraint (c) - No Overlapping Bookings}
 % --------------------
@@ -256,6 +267,78 @@ DELIMITER ;
 
 \textbf{Explanation:} This trigger checks if a guest already has any booking where the dates overlap. The overlap condition is checked using: NOT (new\_end $\leq$ existing\_start OR new\_start $\geq$ existing\_end).
 
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Display current state
+SELECT '=== Current Booking Data for Guest 101 ===' AS Info;
+SELECT * FROM Booking WHERE guestNo = 101;
+
+-- Setup: Create initial booking for guest 101
+SELECT '=== Setup: Creating initial booking ===' AS Info;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-01-10', 1, 101, '2025-01-15', 2);
+SELECT * FROM Booking WHERE guestNo = 101;
+
+-- Test 1: Valid INSERT - Non-overlapping booking (after existing booking)
+SELECT '=== Test 1: Valid non-overlapping booking (Jan 20-25) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-01-20', 2, 101, '2025-01-25', 1);
+SELECT * FROM Booking WHERE guestNo = 101 ORDER BY dateFrom;
+
+-- Test 2: Invalid INSERT - Overlapping booking (partial overlap)
+SELECT '=== Test 2: Invalid overlapping booking (Jan 12-18) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-01-12', 3, 101, '2025-01-18', 2);
+-- Expected: Error - Guest cannot have overlapping bookings
+
+-- Test 3: Invalid INSERT - Complete overlap (within existing booking)
+SELECT '=== Test 3: Invalid overlapping booking (Jan 11-13) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (2, '2025-01-11', 1, 101, '2025-01-13', 1);
+-- Expected: Error - Guest cannot have overlapping bookings
+
+-- Test 4: Valid INSERT - Booking starts when previous ends
+SELECT '=== Test 4: Valid back-to-back booking (Jan 15-18) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-01-15', 3, 101, '2025-01-18', 2);
+SELECT * FROM Booking WHERE guestNo = 101 ORDER BY dateFrom;
+
+-- Test 5: Invalid UPDATE - Change dates to create overlap
+SELECT '=== Test 5: Invalid UPDATE - creating overlap ===' AS Test;
+UPDATE Booking 
+SET dateTo = '2025-01-22' 
+WHERE guestNo = 101 AND dateFrom = '2025-01-15';
+-- Expected: Error - Would create overlap with Jan 20-25 booking
+
+-- Test 6: Valid UPDATE - Change dates without overlap
+SELECT '=== Test 6: Valid UPDATE - no overlap ===' AS Test;
+UPDATE Booking 
+SET dateTo = '2025-01-19' 
+WHERE guestNo = 101 AND dateFrom = '2025-01-15';
+SELECT * FROM Booking WHERE guestNo = 101 ORDER BY dateFrom;
+
+-- Cleanup
+DELETE FROM Booking WHERE guestNo = 101 AND dateFrom IN ('2025-01-10', '2025-01-15', '2025-01-20');
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Setup & INSERT Jan 10-15 & Success \\
+Test 1 & INSERT Jan 20-25 (no overlap) & Success \\
+Test 2 & INSERT Jan 12-18 (partial overlap) & Error - overlap detected \\
+Test 3 & INSERT Jan 11-13 (complete overlap) & Error - overlap detected \\
+Test 4 & INSERT Jan 15-18 (back-to-back) & Success \\
+Test 5 & UPDATE to create overlap & Error - overlap detected \\
+Test 6 & UPDATE without overlap & Success \\
+\hline
+\end{tabular}
+\end{center}
+
 % --------------------
 \subsection{Constraint (d) - Adult Capacity Validation}
 % --------------------
@@ -305,6 +388,71 @@ DELIMITER ;
 \end{lstlisting}
 
 \textbf{Explanation:} This trigger retrieves the maximum adult capacity of the room and validates that the booking does not exceed this limit.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Display current state
+SELECT '=== Current Room Data ===' AS Info;
+SELECT roomNo, hotelNo, type, NumAdultMax FROM Room WHERE hotelNo = 1;
+
+-- Test 1: Valid INSERT - NumOfAdult <= NumAdultMax
+SELECT '=== Test 1: Valid booking (2 adults, room max = 2) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-02-01', 2, 101, '2025-02-05', 2);
+SELECT * FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-02-01';
+
+-- Test 2: Invalid INSERT - NumOfAdult > NumAdultMax
+SELECT '=== Test 2: Invalid booking (4 adults, room max = 2) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-02-10', 2, 101, '2025-02-15', 4);
+-- Expected: Error - Number of adults exceeds room capacity
+
+-- Test 3: Valid INSERT - NumOfAdult = NumAdultMax
+SELECT '=== Test 3: Valid booking (2 adults, room max = 2) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-02-10', 3, 102, '2025-02-15', 2);
+SELECT * FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-02-10' AND roomNo = 3;
+
+-- Test 4: Invalid INSERT - NumOfAdult exceeds by 1
+SELECT '=== Test 4: Invalid booking (3 adults, room max = 2) ===' AS Test;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-02-20', 2, 103, '2025-02-25', 3);
+-- Expected: Error - Number of adults exceeds room capacity
+
+-- Test 5: Valid UPDATE - Increase adults within limit
+SELECT '=== Test 5: Valid UPDATE - 2 to 2 adults ===' AS Test;
+UPDATE Booking 
+SET NumOfAdult = 2 
+WHERE hotelNo = 1 AND dateFrom = '2025-02-01' AND roomNo = 2;
+SELECT * FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-02-01';
+
+-- Test 6: Invalid UPDATE - Increase adults beyond limit
+SELECT '=== Test 6: Invalid UPDATE - 2 to 5 adults ===' AS Test;
+UPDATE Booking 
+SET NumOfAdult = 5 
+WHERE hotelNo = 1 AND dateFrom = '2025-02-01' AND roomNo = 2;
+-- Expected: Error - Number of adults exceeds room capacity
+
+-- Cleanup
+DELETE FROM Booking WHERE hotelNo = 1 AND dateFrom IN ('2025-02-01', '2025-02-10');
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Test 1 & INSERT 2 adults (room max 2) & Success \\
+Test 2 & INSERT 4 adults (room max 2) & Error - exceeds capacity \\
+Test 3 & INSERT 2 adults (room max 2) & Success \\
+Test 4 & INSERT 3 adults (room max 2) & Error - exceeds capacity \\
+Test 5 & UPDATE to 2 adults & Success \\
+Test 6 & UPDATE to 5 adults & Error - exceeds capacity \\
+\hline
+\end{tabular}
+\end{center}
 
 % --------------------
 \subsection{Constraint (e) - Automatic TotalAmount Calculation}
@@ -396,6 +544,79 @@ DELIMITER ;
 
 \textbf{Explanation:} Three triggers maintain the TotalAmount: INSERT adds cost (room price $\times$ days), DELETE subtracts cost, and UPDATE adjusts both guests' totals when booking details change.
 
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Display initial state
+SELECT '=== Initial Guest TotalAmount ===' AS Info;
+SELECT guestNo, guestName, TotalAmount FROM Guest;
+
+-- Display Room prices
+SELECT '=== Room Prices ===' AS Info;
+SELECT roomNo, hotelNo, price FROM Room WHERE hotelNo = 1;
+
+-- Test 1: INSERT booking - TotalAmount should increase automatically
+SELECT '=== Test 1: INSERT booking (5 days * 80 = 400) ===' AS Test;
+SELECT 'Before INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-03-01', 1, 101, '2025-03-06', 2);  -- 5 days * 80 = 400
+SELECT 'After INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+
+-- Test 2: INSERT another booking - TotalAmount should increase more
+SELECT '=== Test 2: INSERT second booking (3 days * 120 = 360) ===' AS Test;
+SELECT 'Before INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+INSERT INTO Booking (hotelNo, dateFrom, roomNo, guestNo, dateTo, NumOfAdult)
+VALUES (1, '2025-03-10', 2, 101, '2025-03-13', 1);  -- 3 days * 120 = 360
+SELECT 'After INSERT:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+-- Expected: TotalAmount = 400 + 360 = 760
+
+-- Test 3: DELETE booking - TotalAmount should decrease
+SELECT '=== Test 3: DELETE first booking (subtract 400) ===' AS Test;
+SELECT 'Before DELETE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+DELETE FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-03-01' AND roomNo = 1;
+SELECT 'After DELETE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+-- Expected: TotalAmount = 760 - 400 = 360
+
+-- Test 4: UPDATE booking - Change dates (TotalAmount should adjust)
+SELECT '=== Test 4: UPDATE booking dates (3 days to 7 days) ===' AS Test;
+SELECT 'Before UPDATE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+UPDATE Booking 
+SET dateTo = '2025-03-17'  -- Change from 3 days to 7 days (7 * 120 = 840)
+WHERE hotelNo = 1 AND dateFrom = '2025-03-10' AND roomNo = 2;
+SELECT 'After UPDATE:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+-- Expected: TotalAmount = 360 - 360 + 840 = 840
+
+-- Test 5: UPDATE booking - Change guest
+SELECT '=== Test 5: UPDATE booking guest (transfer to guest 102) ===' AS Test;
+SELECT 'Guest 101 before:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+SELECT 'Guest 102 before:' AS Status, TotalAmount FROM Guest WHERE guestNo = 102;
+UPDATE Booking 
+SET guestNo = 102
+WHERE hotelNo = 1 AND dateFrom = '2025-03-10' AND roomNo = 2;
+SELECT 'Guest 101 after:' AS Status, TotalAmount FROM Guest WHERE guestNo = 101;
+SELECT 'Guest 102 after:' AS Status, TotalAmount FROM Guest WHERE guestNo = 102;
+-- Expected: Guest 101 = 0, Guest 102 = 840
+
+-- Cleanup
+DELETE FROM Booking WHERE hotelNo = 1 AND dateFrom = '2025-03-10';
+UPDATE Guest SET TotalAmount = 0 WHERE guestNo IN (101, 102);
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Test 1 & INSERT 5-day booking & TotalAmount +400 \\
+Test 2 & INSERT 3-day booking & TotalAmount +360 (total 760) \\
+Test 3 & DELETE first booking & TotalAmount -400 (total 360) \\
+Test 4 & UPDATE dates (3 to 7 days) & TotalAmount 360$\rightarrow$840 \\
+Test 5 & UPDATE guest transfer & Guest 101: 0, Guest 102: 840 \\
+\hline
+\end{tabular}
+\end{center}
+
 % --------------------
 \subsection{Constraint (f) - INSTEAD OF Trigger for View}
 % --------------------
@@ -420,7 +641,8 @@ CREATE PROCEDURE InsertIntoLondonHotelRoom(
     IN p_hotelName VARCHAR(50),
     IN p_roomNo INT,
     IN p_type VARCHAR(20),
-    IN p_price DECIMAL(10, 2)
+    IN p_price DECIMAL(10, 2),
+    IN p_numAdultMax INT
 )
 BEGIN
     DECLARE hotel_exists INT;
@@ -434,14 +656,66 @@ BEGIN
         UPDATE Hotel SET hotelName = p_hotelName WHERE hotelNo = p_hotelNo;
     END IF;
     
-    INSERT INTO Room (roomNo, hotelNo, type, price) 
-    VALUES (p_roomNo, p_hotelNo, p_type, p_price);
+    INSERT INTO Room (roomNo, hotelNo, type, price, NumAdultMax) 
+    VALUES (p_roomNo, p_hotelNo, p_type, p_price, p_numAdultMax);
 END //
 DELIMITER ;
 
 -- Usage:
--- CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 901, 'single', 110);
+-- CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 901, 'single', 110, 1);
 \end{lstlisting}
+
+\textbf{Explanation:} MySQL does not support INSTEAD OF triggers on views. Instead, we use a stored procedure that inserts into both the Hotel and Room tables, ensuring the city is always 'London'.
+
+\subsubsection*{Test Validation}
+\begin{lstlisting}
+-- Display current state
+SELECT '=== Current Hotels and Rooms ===' AS Info;
+SELECT h.hotelNo, h.hotelName, h.city, r.roomNo, r.type, r.price
+FROM Hotel h
+LEFT JOIN Room r ON h.hotelNo = r.hotelNo
+WHERE h.city = 'London';
+
+-- Test 1: Insert into view using stored procedure - New hotel and room
+SELECT '=== Test 1: Insert new hotel (99) and room (901) ===' AS Test;
+CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 901, 'single', 110, 1);
+SELECT * FROM Hotel WHERE hotelNo = 99;
+SELECT * FROM Room WHERE hotelNo = 99 AND roomNo = 901;
+
+-- Test 2: Insert into view - Existing hotel, new room
+SELECT '=== Test 2: Insert room (902) to existing hotel (99) ===' AS Test;
+CALL InsertIntoLondonHotelRoom(99, 'Updated London Hotel', 902, 'double', 180, 2);
+SELECT * FROM Hotel WHERE hotelNo = 99;
+SELECT * FROM Room WHERE hotelNo = 99 ORDER BY roomNo;
+
+-- Test 3: Verify the view shows inserted data
+SELECT '=== Test 3: Query LondonHotelRoom view ===' AS Test;
+SELECT * FROM LondonHotelRoom WHERE hotelNo = 99;
+
+-- Test 4: Insert another room to the same hotel
+SELECT '=== Test 4: Insert third room (903) ===' AS Test;
+CALL InsertIntoLondonHotelRoom(99, 'New London Hotel', 903, 'suite', 250, 4);
+SELECT * FROM LondonHotelRoom WHERE hotelNo = 99 ORDER BY roomNo;
+
+-- Cleanup
+DELETE FROM Room WHERE hotelNo = 99;
+DELETE FROM Hotel WHERE hotelNo = 99;
+\end{lstlisting}
+
+\textbf{Expected Results:}
+\begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Test} & \textbf{Action} & \textbf{Result} \\
+\hline
+Test 1 & Insert new hotel 99 + room 901 & Success \\
+Test 2 & Insert room 902 to hotel 99 & Success \\
+Test 3 & Query view for hotel 99 & Shows 2 rooms \\
+Test 4 & Insert room 903 & Success (3 rooms total) \\
+\hline
+\end{tabular}
+\end{center}
 
 \textbf{Standard SQL (SQL Server/PostgreSQL/Oracle):}
 
@@ -493,73 +767,5 @@ FOR EACH ROW
 EXECUTE FUNCTION fn_instead_of_insert_LondonHotelRoom();
 \end{lstlisting}
 
-\textbf{Explanation:} INSTEAD OF triggers intercept INSERT/UPDATE/DELETE operations on views and execute custom logic instead. For the LondonHotelRoom view, the trigger inserts into both Hotel and Room tables, ensuring the city is always 'London'.
+\textbf{Note:} INSTEAD OF triggers intercept INSERT/UPDATE/DELETE operations on views and execute custom logic instead. For databases that support them (SQL Server, PostgreSQL, Oracle), the trigger directly handles inserts into the view by inserting into both the Hotel and Room tables.
 
-\begin{lstlisting}
-INSTEAD OF DELETE
-AS
-BEGIN
-    DELETE FROM Hotel WHERE hotelNo IN (SELECT hotelNo FROM deleted);
-END;
-GO
-\end{lstlisting}
-
-\textbf{PostgreSQL:}
-\begin{lstlisting}
--- PostgreSQL uses trigger functions
-CREATE OR REPLACE VIEW Vhotel1 AS
-SELECT hotelNo, hotelName, city FROM Hotel;
-
-CREATE OR REPLACE FUNCTION fn_vhotel1_delete()
-RETURNS TRIGGER AS $$
-BEGIN
-    DELETE FROM Hotel WHERE hotelNo = OLD.hotelNo;
-    RETURN OLD;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trg_vhotel1_delete
-INSTEAD OF DELETE ON Vhotel1
-FOR EACH ROW EXECUTE FUNCTION fn_vhotel1_delete();
-\end{lstlisting}
-
-\textbf{Oracle:}
-\begin{lstlisting}
--- Oracle supports INSTEAD OF triggers on views
-CREATE OR REPLACE VIEW Vhotel1 AS
-SELECT hotelNo, hotelName, city FROM Hotel;
-
-CREATE OR REPLACE TRIGGER trg_vhotel1_delete
-INSTEAD OF DELETE ON Vhotel1
-FOR EACH ROW
-BEGIN
-    DELETE FROM Hotel WHERE hotelNo = :OLD.hotelNo;
-END;
-/
-\end{lstlisting}
-
-\subsubsection*{Test Validation}
-\begin{lstlisting}
--- Setup: Insert a test hotel
-INSERT INTO Hotel VALUES (99, 'Test Hotel', 'Test City');
-
--- Test 1: Try direct delete (should fail)
-DELETE FROM Hotel WHERE hotelNo = 99;
-
--- Test 2: Delete through view procedure (should succeed)
-CALL DeleteFromVhotel1(99);
-\end{lstlisting}
-
-\textbf{Expected Results:}
-\begin{center}
-\footnotesize
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Test} & \textbf{Action} & \textbf{Result} \\
-\hline
-Setup & INSERT Hotel 99 & Row inserted \\
-Test 1 & Direct DELETE & Trigger error \\
-Test 2 & CALL DeleteFromVhotel1(99) & Row deleted \\
-\hline
-\end{tabular}
-\end{center}
