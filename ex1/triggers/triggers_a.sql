@@ -241,18 +241,45 @@ DELIMITER ;
 -- Constraint 8: A manager's salary must be the highest in the department
 -- -----------------------------------------
 
-DROP TRIGGER IF EXISTS trg_manager_salary_highest;
+-- Trigger for INSERT: Check if new employee salary < manager salary
+DROP TRIGGER IF EXISTS trg_manager_salary_highest_insert;
 DELIMITER //
-CREATE TRIGGER trg_manager_salary_highest
+CREATE TRIGGER trg_manager_salary_highest_insert
+BEFORE INSERT ON EMPLOYEE
+FOR EACH ROW
+BEGIN
+    DECLARE manager_salary DECIMAL(10, 2);
+    
+    -- Get the manager's salary for the employee's department
+    SELECT e.Salary INTO manager_salary
+    FROM EMPLOYEE e
+    JOIN DEPARTMENT d ON d.Mgr_ssn = e.Ssn
+    WHERE d.Dnumber = NEW.Dno;
+    
+    -- Check if new employee's salary >= manager's salary
+    IF manager_salary IS NOT NULL AND NEW.Salary >= manager_salary THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Employee salary cannot be equal to or greater than department manager salary.';
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger for UPDATE: Check both manager and employee salary constraints
+DROP TRIGGER IF EXISTS trg_manager_salary_highest_update;
+DELIMITER //
+CREATE TRIGGER trg_manager_salary_highest_update
 BEFORE UPDATE ON EMPLOYEE
 FOR EACH ROW
 BEGIN
     DECLARE is_manager INT;
+    DECLARE manager_salary DECIMAL(10, 2);
     DECLARE max_other_salary DECIMAL(10, 2);
     
+    -- Check if this employee is a department manager
     SELECT COUNT(*) INTO is_manager FROM DEPARTMENT WHERE Mgr_ssn = NEW.Ssn;
     
     IF is_manager > 0 THEN
+        -- If updating a manager, ensure their salary remains highest in department
         SELECT MAX(Salary) INTO max_other_salary 
         FROM EMPLOYEE e
         JOIN DEPARTMENT d ON d.Dnumber = e.Dno
@@ -261,6 +288,17 @@ BEGIN
         IF max_other_salary IS NOT NULL AND NEW.Salary <= max_other_salary THEN
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Error: Manager salary must be highest in the department.';
+        END IF;
+    ELSE
+        -- If updating a non-manager, ensure salary < manager salary
+        SELECT e.Salary INTO manager_salary
+        FROM EMPLOYEE e
+        JOIN DEPARTMENT d ON d.Mgr_ssn = e.Ssn
+        WHERE d.Dnumber = NEW.Dno;
+        
+        IF manager_salary IS NOT NULL AND NEW.Salary >= manager_salary THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Employee salary cannot be equal to or greater than department manager salary.';
         END IF;
     END IF;
 END //
